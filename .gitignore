@@ -7,10 +7,12 @@ yarn.lock
 .env
 .env.local
 .env.*.local
+.env.production
 
 # Database
 *.sqlite
 *.db
+server/data/
 
 # Media files
 server/media/
@@ -18,11 +20,15 @@ server/media/
 *.avi
 *.mkv
 *.mov
+*.webm
+*.flv
 
 # Build outputs
 client/dist/
 client/build/
 lg-tv-app/*.ipk
+dist/
+build/
 
 # Logs
 logs/
@@ -30,6 +36,24 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Backups
+backups/
+*.backup
+*.sql
+
+# SSL Certificates
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+*.pem
+*.key
+*.crt
 
 # Editor directories
 .vscode/
@@ -37,11 +61,30 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
 
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Temporary files
 tmp/
 temp/
+*.tmp
+*.temp
+
+# Cache
+.cache/
+.npm/
+.eslintcache
+
+# Coverage
+coverage/
+*.lcov
+
+# Production
+.vercel
+.netlify

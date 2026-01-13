@@ -1,355 +1,508 @@
-# MediaFlix - Personal Media Server Suite
+# 🎬 MediaFlix - Personal Media Server Suite
 
-A Netflix-style media server with clients for desktop, mobile, and LG TV. Stream your personal collection of movies and TV shows across all your devices.
+A production-ready, Netflix-style media server with authentication, watch history, recommendations, and beautiful interfaces for desktop, mobile, and LG TV.
 
-![MediaFlix](https://img.shields.io/badge/Version-1.0.0-red.svg)
+![MediaFlix](https://img.shields.io/badge/Version-2.0.0-red.svg)
 ![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20LG%20TV-blue.svg)
-
-## Features
-
-- **Netflix-like UI** - Beautiful, responsive interface inspired by Netflix
-- **Multi-Platform Support** - Web (desktop/mobile) and LG webOS TV apps
-- **Media Library Management** - Organize movies and TV shows with metadata
-- **Video Streaming** - Built-in video player with controls
-- **Search & Browse** - Find content by title, genre, or type
-- **TV Remote Navigation** - Full D-pad support for LG TV app
-- **Responsive Design** - Optimized for all screen sizes
-
-## Project Structure
-
-```
-media-server-suite/
-├── server/              # Backend API server
-│   ├── server.js        # Express server
-│   ├── database.js      # SQLite database
-│   └── media/           # Media files directory
-├── client/              # Web client (React + Vite)
-│   └── src/
-│       ├── components/  # Reusable UI components
-│       ├── pages/       # Page components
-│       └── styles/      # CSS files
-└── lg-tv-app/          # LG webOS TV app
-    ├── appinfo.json    # App configuration
-    ├── index.html      # Main HTML
-    └── js/             # JavaScript files
-```
-
-## Prerequisites
-
-- Node.js (v16 or higher)
-- npm or yarn
-- For LG TV: webOS TV SDK (optional, for deployment)
-
-## Installation
-
-### 1. Install Dependencies
-
-```bash
-# Install all dependencies
-npm run install-all
-
-# Or install individually
-npm install                    # Root dependencies
-cd server && npm install       # Server dependencies
-cd ../client && npm install    # Client dependencies
-```
-
-### 2. Configure the Server
-
-```bash
-cd server
-cp .env.example .env
-```
-
-Edit `.env` file:
-```env
-PORT=3001
-MEDIA_PATH=./media
-DB_PATH=./database.sqlite
-```
-
-### 3. Add Your Media Files
-
-Create a `media` directory in the `server` folder and add your video files:
-
-```bash
-mkdir -p server/media
-# Copy your video files to server/media/
-```
-
-## Running the Application
-
-### Development Mode
-
-Run both server and client in development mode:
-
-```bash
-# From the root directory
-npm run dev
-```
-
-This will start:
-- Backend server at `http://localhost:3001`
-- Web client at `http://localhost:3000`
-
-### Production Mode
-
-```bash
-# Build the client
-npm run build
-
-# Start the server
-npm start
-```
-
-### Running Individually
-
-**Backend Server:**
-```bash
-cd server
-npm run dev          # Development mode with auto-reload
-# or
-npm start           # Production mode
-```
-
-**Web Client:**
-```bash
-cd client
-npm run dev         # Development mode
-# or
-npm run build       # Build for production
-npm run preview     # Preview production build
-```
-
-## Web Client Usage
-
-### Desktop/Mobile Browser
-
-1. Open your browser and navigate to `http://localhost:3000`
-2. Browse the media library on the home page
-3. Click on any title to see details
-4. Click "Play" to watch the content
-5. Use the search feature to find specific titles
-
-### Mobile Responsive Features
-
-- Touch-optimized interface
-- Swipe to scroll through media rows
-- Adaptive layout for smaller screens
-- Full-screen video playback
-
-## LG TV Setup
-
-### For Development (Testing on Computer)
-
-1. Open `lg-tv-app/index.html` in a web browser
-2. Use keyboard arrow keys to navigate
-3. Press Enter to select items
-
-### For LG webOS TV Deployment
-
-#### Prerequisites
-Install the webOS TV SDK:
-```bash
-# Follow instructions at:
-# http://webostv.developer.lge.com/sdk/installation/
-```
-
-#### Configuration
-
-1. Update the server IP in `lg-tv-app/js/api.js`:
-```javascript
-const API_BASE_URL = 'http://YOUR_SERVER_IP:3001/api';
-```
-
-2. Update the media URL in `lg-tv-app/js/app.js` (line with video source)
-
-#### Package and Install
-
-```bash
-cd lg-tv-app
-
-# Package the app
-ares-package .
-
-# Install on your TV (replace YOUR_TV with your TV's device name)
-ares-install --device YOUR_TV com.mediaserver.app_1.0.0_all.ipk
-
-# Launch the app
-ares-launch --device YOUR_TV com.mediaserver.app
-```
-
-### TV Remote Controls
-
-- **Arrow Keys** - Navigate through the interface
-- **OK/Enter** - Select item
-- **Back** - Go back to previous screen
-- **Exit** - Close the app
-
-## API Endpoints
-
-The backend server exposes the following REST API endpoints:
-
-### Media Endpoints
-
-- `GET /api/media` - Get all media (supports query params: type, genre, search)
-- `GET /api/media/:id` - Get specific media by ID
-- `GET /api/featured` - Get featured/top-rated media
-- `GET /api/genres` - Get all available genres
-- `POST /api/media` - Add new media (JSON body)
-
-### Example API Calls
-
-```bash
-# Get all movies
-curl http://localhost:3001/api/media?type=movie
-
-# Search for content
-curl http://localhost:3001/api/media?search=action
-
-# Get media details
-curl http://localhost:3001/api/media/1
-```
-
-## Adding Media to the Library
-
-### Method 1: Add Files Directly
-
-1. Place video files in `server/media/`
-2. Use the API to add metadata:
-
-```bash
-curl -X POST http://localhost:3001/api/media \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "My Movie",
-    "description": "A great movie",
-    "type": "movie",
-    "genre": "Action",
-    "year": 2024,
-    "rating": 8.5,
-    "duration": 120,
-    "thumbnail": "https://example.com/poster.jpg",
-    "backdrop": "https://example.com/backdrop.jpg",
-    "video_url": "my-movie.mp4"
-  }'
-```
-
-### Method 2: Direct Database Edit
-
-The SQLite database is located at `server/database.sqlite`. You can use any SQLite client to add entries directly to the `media` table.
-
-## Customization
-
-### Changing the Theme
-
-Edit the CSS files in `client/src/styles/` to customize colors and styling:
-
-- Primary color: `#e50914` (Netflix red)
-- Background: `#141414` (Dark)
-- Text: `#fff` (White)
-
-### Adding New Features
-
-The codebase is modular and easy to extend:
-
-- **Server**: Add new routes in `server/server.js`
-- **Web Client**: Add new components in `client/src/components/`
-- **LG TV**: Modify `lg-tv-app/js/app.js`
-
-## Troubleshooting
-
-### Server won't start
-- Check if port 3001 is already in use
-- Verify Node.js is installed correctly
-- Check the `.env` file configuration
-
-### Videos won't play
-- Ensure video files are in `server/media/`
-- Check video format (MP4 recommended)
-- Verify the `video_url` in the database matches the filename
-
-### LG TV app not connecting
-- Update the server IP in `lg-tv-app/js/api.js`
-- Ensure your TV and server are on the same network
-- Check firewall settings on the server
-
-### Web client shows "Loading..."
-- Verify the backend server is running
-- Check browser console for errors
-- Ensure the API proxy is configured correctly in `vite.config.js`
-
-## Tech Stack
-
-### Backend
-- **Node.js** - Runtime environment
-- **Express** - Web framework
-- **SQLite** - Database
-- **CORS** - Cross-origin resource sharing
-
-### Web Client
-- **React** - UI framework
-- **Vite** - Build tool and dev server
-- **React Router** - Routing
-- **Axios** - HTTP client
-
-### LG TV App
-- **Vanilla JavaScript** - Core logic
-- **webOS APIs** - TV integration
-- **CSS3** - Styling
-
-## Performance Tips
-
-1. **Video Encoding**: Use H.264 codec for best compatibility
-2. **Image Optimization**: Compress thumbnails and backdrops
-3. **Server Location**: Host on the same network as viewing devices
-4. **Database**: Regular cleanup of unused entries
-5. **Caching**: Enable browser caching for static assets
-
-## Security Considerations
-
-⚠️ **This is a local network application. Do NOT expose to the internet without proper security measures:**
-
-- No authentication is implemented
-- No HTTPS/SSL encryption
-- No input validation on file uploads
-- Designed for trusted local network use only
-
-For internet access, consider:
-- Adding user authentication
-- Implementing HTTPS
-- Setting up a VPN
-- Using a reverse proxy (nginx, Caddy)
-
-## Future Enhancements
-
-Potential features to add:
-- [ ] User accounts and authentication
-- [ ] Watch history and resume playback
-- [ ] Subtitle support
-- [ ] Multiple audio tracks
-- [ ] Continue watching row
-- [ ] Recommendations engine
-- [ ] Mobile native apps (iOS/Android)
-- [ ] Chromecast support
-- [ ] Download for offline viewing
-- [ ] Multi-language support
-
-## License
-
-This project is open source and available for personal use.
-
-## Contributing
-
-Feel free to fork and customize this project for your needs. Pull requests are welcome!
-
-## Support
-
-For issues and questions:
-1. Check the Troubleshooting section
-2. Review the code comments
-3. Check browser/server console logs
+![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ---
 
-**Enjoy your personal Netflix-style media server!** 🎬🍿
+## ✨ Features
+
+### 🔐 User Management
+- **JWT Authentication** - Secure login system
+- **User Profiles** - Personalized avatars and settings
+- **Multiple Users** - Each user gets their own experience
+
+### 📺 Content Features
+- **Watch History** - Resume playback where you left off
+- **My List** - Save favorites for later
+- **Recommendations** - Smart content suggestions based on your tastes
+- **Search** - Find content by title, genre, cast, or tags
+- **Continue Watching** - Pick up right where you stopped
+
+### 🎨 Beautiful UI
+- **Modern Design** - Netflix-inspired interface with glassmorphism
+- **Responsive** - Perfect on phone, tablet, desktop, and TV
+- **Smooth Animations** - Polished transitions and effects
+- **Dark Theme** - Easy on the eyes
+
+### 🚀 Easy Deployment
+- **One-Command Install** - Get running in seconds
+- **Docker Support** - Containerized for easy deployment
+- **Multi-Platform** - Works on Linux, macOS, Windows
+- **Cloud Ready** - Deploy to AWS, GCP, DigitalOcean, etc.
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker and Docker Compose ([Install Docker Desktop](https://www.docker.com/products/docker-desktop))
+- 2GB+ RAM
+- 10GB+ disk space
+
+### Installation
+
+**Linux/macOS:**
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+**Windows PowerShell:**
+```powershell
+.\install.ps1
+```
+
+**Manual Docker Compose:**
+```bash
+cp .env.example .env
+docker-compose up -d
+```
+
+### Access
+- **Frontend:** http://localhost:3000
+- **Backend:** http://localhost:3001/api
+
+### Default Account
+- **Username:** `demo`
+- **Password:** `demo123`
+
+---
+
+## 📖 Documentation
+
+- **[Quick Start Guide](./QUICKSTART.md)** - Get up and running in 5 minutes
+- **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment for VPS, cloud platforms
+- **[API Documentation](#api-endpoints)** - Complete REST API reference
+
+---
+
+## 🏗️ Architecture
+
+### Project Structure
+
+```
+mediaflix/
+├── server/              # Backend API (Node.js + Express)
+│   ├── server.js        # Main server file
+│   ├── database.js      # SQLite database & queries
+│   ├── auth.js          # JWT authentication
+│   ├── media/           # Media files directory
+│   └── data/            # Database storage
+├── client/              # Frontend (React + Vite)
+│   ├── src/
+│   │   ├── components/  # Reusable UI components
+│   │   ├── pages/       # Page components
+│   │   ├── context/     # React context (Auth)
+│   │   ├── utils/       # API client & helpers
+│   │   └── styles/      # CSS files
+├── lg-tv-app/          # LG webOS TV app
+├── scripts/            # Utility scripts
+│   ├── backup.sh       # Backup database & media
+│   ├── restore.sh      # Restore from backup
+│   └── update.sh       # Update to latest version
+├── docker-compose.yml  # Docker orchestration
+├── install.sh          # One-command installer (Linux/Mac)
+└── install.ps1         # One-command installer (Windows)
+```
+
+### Tech Stack
+
+**Backend:**
+- Node.js 18+ with Express
+- SQLite database
+- JWT authentication with bcrypt
+- CORS enabled
+
+**Frontend:**
+- React 18 with Hooks
+- Vite for blazing-fast builds
+- React Router for navigation
+- Axios for API calls
+- React Toastify for notifications
+- Framer Motion for animations
+
+**Infrastructure:**
+- Docker & Docker Compose
+- Nginx reverse proxy
+- Health checks & monitoring
+
+---
+
+## 📱 Platforms
+
+### Web (Desktop & Mobile)
+- Responsive React application
+- Works on all modern browsers
+- Mobile-optimized touch interface
+- Progressive Web App ready
+
+### LG webOS TV
+- Native TV app with remote control navigation
+- D-pad and voice control support
+- Optimized for 1920x1080 displays
+- 10-foot UI design
+
+---
+
+## 🎯 Key Features
+
+### For Users
+
+- ✅ **Easy Login** - Simple username/password authentication
+- ✅ **Resume Playback** - Never lose your place
+- ✅ **My List** - Build your watchlist
+- ✅ **Smart Recommendations** - Discover similar content
+- ✅ **Search Everything** - Find by title, genre, cast, director
+- ✅ **User Preferences** - Autoplay, quality settings
+- ✅ **Statistics** - Track your watch time
+
+### For Admins
+
+- ✅ **Easy Setup** - One command installation
+- ✅ **Docker Deployment** - Portable and scalable
+- ✅ **Automated Backups** - Protect your data
+- ✅ **Health Monitoring** - Built-in health checks
+- ✅ **Secure** - JWT tokens, password hashing
+- ✅ **REST API** - Programmatic access
+- ✅ **Media Management** - Add content via API
+
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create `.env` file from `.env.example`:
+
+```env
+# Server
+SERVER_PORT=3001
+NODE_ENV=production
+JWT_SECRET=your-secure-random-secret
+
+# Client
+CLIENT_PORT=3000
+VITE_API_URL=http://localhost:3001
+
+# Nginx (for production)
+NGINX_HTTP_PORT=80
+NGINX_HTTPS_PORT=443
+
+# Database
+DB_PATH=./data/database.sqlite
+MEDIA_PATH=./media
+```
+
+### Custom Ports
+
+To change ports, edit `.env` and restart:
+```bash
+docker-compose down
+docker-compose up -d
+```
+
+### Adding Media
+
+1. Place video files in `./server/media/`
+2. Supported formats: MP4, AVI, MKV, MOV, WebM
+3. Add metadata via API or directly in database
+
+---
+
+## 🛠️ Management Commands
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Restart services
+docker-compose restart
+
+# Update to latest
+./scripts/update.sh
+
+# Backup data
+./scripts/backup.sh
+
+# Restore backup
+./scripts/restore.sh backups/database_YYYYMMDD.sql
+
+# Clean up
+docker system prune -a
+```
+
+---
+
+## 📡 API Endpoints
+
+### Authentication
+
+```http
+POST   /api/auth/login       # Login user
+POST   /api/auth/register    # Register new user
+GET    /api/auth/me          # Get current user
+```
+
+### Media
+
+```http
+GET    /api/media            # Get all media (with filters)
+GET    /api/media/:id        # Get specific media
+POST   /api/media            # Add new media (auth required)
+GET    /api/featured         # Get featured content
+GET    /api/genres           # Get all genres
+GET    /api/recommendations/:id  # Get recommendations
+```
+
+### Watch History
+
+```http
+GET    /api/watch-history           # Get user's watch history
+POST   /api/watch-history           # Update watch progress
+GET    /api/watch-history/:mediaId  # Get progress for media
+```
+
+### My List
+
+```http
+GET    /api/my-list              # Get user's list
+POST   /api/my-list/:mediaId     # Add to list
+DELETE /api/my-list/:mediaId     # Remove from list
+GET    /api/my-list/check/:mediaId  # Check if in list
+```
+
+### User
+
+```http
+GET    /api/preferences      # Get user preferences
+PUT    /api/preferences      # Update preferences
+PUT    /api/profile          # Update profile
+GET    /api/stats            # Get user statistics
+```
+
+---
+
+## 🔒 Security Features
+
+- **JWT Tokens** - Secure, stateless authentication
+- **Password Hashing** - Bcrypt with salt rounds
+- **Protected Routes** - Authorization middleware
+- **Rate Limiting** - Prevent abuse (production nginx)
+- **CORS Configuration** - Controlled cross-origin access
+- **Input Validation** - Sanitized user inputs
+- **Security Headers** - XSS protection, frame options
+
+### Production Security
+
+For production deployments:
+1. Change default JWT secret
+2. Enable HTTPS with SSL certificates
+3. Configure firewall rules
+4. Regular security updates
+5. Database backups
+6. Monitor access logs
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for details.
+
+---
+
+## 🌐 Deployment
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+cd server && npm install
+cd ../client && npm install
+
+# Start backend
+cd server && npm run dev
+
+# Start frontend (new terminal)
+cd client && npm run dev
+```
+
+### Docker Production
+
+```bash
+# Standard deployment
+docker-compose up -d
+
+# With nginx reverse proxy
+COMPOSE_PROFILES=production docker-compose up -d
+```
+
+### Cloud Platforms
+
+Detailed guides for:
+- AWS (EC2, ECS, Elastic Beanstalk)
+- Google Cloud (Compute Engine, Cloud Run)
+- DigitalOcean (Droplets)
+- Heroku
+- Railway.app
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step instructions.
+
+---
+
+## 🔄 Updates & Maintenance
+
+### Update MediaFlix
+
+```bash
+# Automated update (with backup)
+./scripts/update.sh
+
+# Manual update
+git pull
+docker-compose up -d --build
+```
+
+### Backup & Restore
+
+```bash
+# Create backup
+./scripts/backup.sh
+
+# List backups
+ls -lh backups/
+
+# Restore from backup
+./scripts/restore.sh backups/database_20240115.sql
+```
+
+### Automated Backups
+
+Add to crontab for daily backups at 2 AM:
+```bash
+crontab -e
+0 2 * * * cd /path/to/mediaflix && ./scripts/backup.sh
+```
+
+---
+
+## 🎨 Customization
+
+### Branding
+
+Edit these files to customize branding:
+- `client/src/styles/index.css` - Global colors
+- `client/src/components/Navbar.jsx` - Logo and title
+- `.env` - App configuration
+
+### Adding Features
+
+The codebase is modular and easy to extend:
+- **Backend:** Add routes in `server/server.js`
+- **Frontend:** Add pages in `client/src/pages/`
+- **Database:** Extend schema in `server/database.js`
+
+---
+
+## 🐛 Troubleshooting
+
+### Services won't start
+
+```bash
+docker-compose logs        # View all logs
+docker-compose ps          # Check status
+docker-compose restart     # Restart services
+```
+
+### Port conflicts
+
+```bash
+# Check what's using ports
+lsof -i :3000
+lsof -i :3001
+
+# Change ports in .env
+```
+
+### Database issues
+
+```bash
+# Reset database (⚠️ deletes data)
+rm server/data/database.sqlite
+docker-compose restart server
+```
+
+### Permission errors
+
+```bash
+sudo chown -R $USER:$USER .
+chmod -R 755 server/media server/data
+```
+
+---
+
+## 📊 Performance Tips
+
+1. **Video Encoding** - Use H.264 for best compatibility
+2. **Thumbnails** - Compress images for faster loading
+3. **Database** - Regular cleanup and optimization
+4. **Caching** - Nginx caching enabled by default
+5. **Resources** - Allocate enough Docker resources
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
+- Improve documentation
+
+---
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+---
+
+## 🙏 Acknowledgments
+
+Inspired by Netflix and other modern streaming platforms.
+
+Built with:
+- React
+- Node.js
+- Express
+- SQLite
+- Docker
+
+---
+
+## 📞 Support
+
+- **Documentation:** Check [QUICKSTART.md](./QUICKSTART.md) and [DEPLOYMENT.md](./DEPLOYMENT.md)
+- **Issues:** GitHub Issues
+- **Questions:** GitHub Discussions
+
+---
+
+## 🎉 Getting Started
+
+Ready to start? Run this command:
+
+```bash
+./install.sh  # Linux/macOS
+.\install.ps1  # Windows
+```
+
+Then visit http://localhost:3000 and enjoy! 🍿
+
+---
+
+**Made with ❤️ by the MediaFlix team**
