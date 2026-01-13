@@ -1,0 +1,136 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 20px 4%;
+  z-index: 1000;
+  transition: background-color 0.3s ease;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
+}
+
+.navbar.scrolled {
+  background-color: #141414;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1920px;
+  margin: 0 auto;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.navbar-logo {
+  font-size: 28px;
+  font-weight: bold;
+  color: #e50914;
+  text-decoration: none;
+  letter-spacing: 2px;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-links a {
+  color: #e5e5e5;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.navbar-links a:hover {
+  color: #b3b3b3;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.search-icon:hover {
+  color: #b3b3b3;
+}
+
+.search-container.open {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 1px solid #fff;
+  padding: 5px 10px;
+}
+
+.search-container input {
+  background: none;
+  border: none;
+  color: #fff;
+  outline: none;
+  padding: 5px 10px;
+  width: 250px;
+  font-size: 14px;
+}
+
+.search-container input::placeholder {
+  color: #b3b3b3;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 15px 4%;
+  }
+
+  .navbar-logo {
+    font-size: 22px;
+  }
+
+  .navbar-links {
+    gap: 15px;
+  }
+
+  .navbar-links a {
+    font-size: 12px;
+  }
+
+  .search-container input {
+    width: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-left {
+    gap: 15px;
+  }
+
+  .navbar-links {
+    display: none;
+  }
+
+  .navbar-logo {
+    font-size: 18px;
+  }
+}

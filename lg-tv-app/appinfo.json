@@ -1,0 +1,15 @@
+{
+  "id": "com.mediaserver.app",
+  "version": "1.0.0",
+  "vendor": "Media Server",
+  "type": "web",
+  "main": "index.html",
+  "title": "MediaFlix",
+  "icon": "icon.png",
+  "largeIcon": "icon.png",
+  "bgImage": "bg.png",
+  "resolution": "1920x1080",
+  "disableBackHistoryAPI": false,
+  "vendor": "MediaFlix",
+  "appDescription": "Stream your personal media library on your LG TV"
+}

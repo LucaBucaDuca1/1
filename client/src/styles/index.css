@@ -1,0 +1,100 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #141414;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+.app {
+  min-height: 100vh;
+  background-color: #141414;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #141414;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+/* Loading Spinner */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 24px;
+  color: #e50914;
+}
+
+/* Button Styles */
+.btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-primary {
+  background-color: #fff;
+  color: #000;
+}
+
+.btn-primary:hover {
+  background-color: rgba(255, 255, 255, 0.75);
+}
+
+.btn-secondary {
+  background-color: rgba(109, 109, 110, 0.7);
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(109, 109, 110, 0.4);
+}
+
+.btn-play {
+  background-color: #e50914;
+  color: #fff;
+}
+
+.btn-play:hover {
+  background-color: #f40612;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .btn {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}

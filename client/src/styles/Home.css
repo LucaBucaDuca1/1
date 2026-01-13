@@ -1,0 +1,26 @@
+.home {
+  min-height: 100vh;
+  padding-top: 70px;
+}
+
+.rows-container {
+  position: relative;
+  z-index: 10;
+  margin-top: -150px;
+}
+
+@media (max-width: 768px) {
+  .home {
+    padding-top: 60px;
+  }
+
+  .rows-container {
+    margin-top: -100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rows-container {
+    margin-top: -50px;
+  }
+}

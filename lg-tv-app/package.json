@@ -1,0 +1,13 @@
+{
+  "name": "lg-tv-app",
+  "version": "1.0.0",
+  "description": "LG webOS TV app for MediaFlix",
+  "main": "index.html",
+  "scripts": {
+    "package": "ares-package .",
+    "install-device": "ares-install com.mediaserver.app_1.0.0_all.ipk",
+    "launch": "ares-launch com.mediaserver.app"
+  },
+  "keywords": ["webos", "lg", "tv", "media"],
+  "author": "MediaFlix"
+}
