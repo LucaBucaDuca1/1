@@ -17,6 +17,7 @@ A production-ready, Netflix-style media server with authentication, watch histor
 - **Multiple Users** - Each user gets their own experience
 
 ### 📺 Content Features
+- **Upload Media** - Easy upload interface for movies and TV shows (up to 5GB per file)
 - **Watch History** - Resume playback where you left off
 - **My List** - Save favorites for later
 - **Recommendations** - Smart content suggestions based on your tastes
@@ -38,6 +39,30 @@ A production-ready, Netflix-style media server with authentication, watch histor
 ---
 
 ## 🚀 Quick Start
+
+### Method 1: Simple Start (Development)
+
+**Linux/macOS:**
+```bash
+./start.sh
+```
+
+**Windows:**
+```cmd
+start.bat
+```
+
+**Or using npm:**
+```bash
+npm run dev
+```
+
+This will automatically:
+- Install all dependencies
+- Start the backend server (http://localhost:3001)
+- Start the frontend client (http://localhost:5173)
+
+### Method 2: Docker (Production)
 
 ### Prerequisites
 - Docker and Docker Compose ([Install Docker Desktop](https://www.docker.com/products/docker-desktop))
@@ -70,6 +95,22 @@ docker-compose up -d
 ### Default Account
 - **Username:** `demo`
 - **Password:** `demo123`
+
+### 📤 Uploading Movies & TV Shows
+
+1. **Login** to your account (or create one if you haven't)
+2. Click **"Upload"** in the navigation bar
+3. Fill in the media details:
+   - Title, description, type (movie/series/documentary)
+   - Genre, year, duration, rating
+   - Cast, director, tags
+4. Select files:
+   - **Video file** (MP4, MKV, AVI, MOV, WebM - up to 5GB)
+   - **Poster image** (Optional - for the thumbnail)
+   - **Backdrop image** (Optional - for the hero background)
+5. Click **"Upload Media"** and wait for the upload to complete
+
+Your content will immediately appear in the library!
 
 ---
 

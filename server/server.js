@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 const { db, initDatabase, dbHelpers } = require('./database');
 const { authenticateToken, optionalAuth, login, register } = require('./auth');
 
@@ -11,6 +13,37 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use('/media', express.static(path.join(__dirname, 'media')));
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'media', 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // 5GB limit
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /mp4|mkv|avi|mov|webm|jpg|jpeg|png/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype) || file.mimetype.startsWith('video/');
+
+    if (extname && mimetype) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only video files and images are allowed!'));
+    }
+  }
+});
 
 // Initialize database
 initDatabase();
@@ -37,6 +70,64 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 });
 
 // ==================== MEDIA ROUTES ====================
+
+// Upload movie/media
+app.post('/api/media/upload', authenticateToken, upload.fields([
+  { name: 'video', maxCount: 1 },
+  { name: 'poster', maxCount: 1 },
+  { name: 'backdrop', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const { title, description, type, genre, year, duration, rating, cast, director, tags } = req.body;
+
+    if (!title || !type) {
+      return res.status(400).json({ error: 'Title and type are required' });
+    }
+
+    const videoFile = req.files['video'] ? req.files['video'][0] : null;
+    const posterFile = req.files['poster'] ? req.files['poster'][0] : null;
+    const backdropFile = req.files['backdrop'] ? req.files['backdrop'][0] : null;
+
+    const videoUrl = videoFile ? `/media/uploads/${videoFile.filename}` : '';
+    const posterUrl = posterFile ? `/media/uploads/${posterFile.filename}` : '/media/placeholders/poster.jpg';
+    const backdropUrl = backdropFile ? `/media/uploads/${backdropFile.filename}` : '/media/placeholders/backdrop.jpg';
+
+    const query = `
+      INSERT INTO media (title, description, type, genre, year, duration, rating, poster_url, backdrop_url, video_url, cast, director, tags)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(query, [
+      title,
+      description || '',
+      type,
+      genre || 'Other',
+      year || new Date().getFullYear(),
+      duration || 0,
+      rating || 'NR',
+      posterUrl,
+      backdropUrl,
+      videoUrl,
+      cast || '',
+      director || '',
+      tags || ''
+    ], function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({
+        success: true,
+        message: 'Media uploaded successfully',
+        id: this.lastID,
+        videoUrl,
+        posterUrl,
+        backdropUrl
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Get all media
 app.get('/api/media', optionalAuth, (req, res) => {

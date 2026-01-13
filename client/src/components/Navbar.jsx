@@ -51,6 +51,7 @@ const Navbar = () => {
             <Link to="/?type=movie">Movies</Link>
             <Link to="/?type=series">TV Shows</Link>
             {isAuthenticated && <Link to="/my-list">My List</Link>}
+            {isAuthenticated && <Link to="/upload">Upload</Link>}
           </div>
         </div>
 
@@ -115,6 +116,14 @@ const Navbar = () => {
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                     </svg>
                     My List
+                  </Link>
+                  <Link to="/upload" className="dropdown-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Upload Media
                   </Link>
                   <div className="dropdown-divider"></div>
                   <button onClick={handleLogout} className="dropdown-item danger">
