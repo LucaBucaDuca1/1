@@ -1,0 +1,156 @@
+.my-list-page {
+  min-height: 100vh;
+  padding-top: 100px;
+  padding-bottom: 60px;
+  background-color: #141414;
+}
+
+.my-list-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 4%;
+}
+
+.my-list-title {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 40px;
+  background: linear-gradient(135deg, #e50914 0%, #f093fb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.empty-list {
+  text-align: center;
+  padding: 100px 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 30px;
+  opacity: 0.5;
+}
+
+.empty-list h2 {
+  font-size: 32px;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.empty-list p {
+  font-size: 18px;
+  color: #b3b3b3;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.my-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.list-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  aspect-ratio: 2/3;
+}
+
+.list-card:hover {
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.list-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.list-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.list-card:hover .list-card-overlay {
+  opacity: 1;
+}
+
+.list-card-overlay h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.list-card-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.list-card-meta .rating {
+  color: #ffd700;
+}
+
+.list-card-meta .year,
+.list-card-meta .type {
+  color: #b3b3b3;
+  text-transform: capitalize;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .my-list-page {
+    padding-top: 80px;
+  }
+
+  .my-list-title {
+    font-size: 36px;
+  }
+
+  .my-list-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .empty-list {
+    padding: 60px 20px;
+  }
+
+  .empty-icon {
+    font-size: 60px;
+  }
+
+  .empty-list h2 {
+    font-size: 24px;
+  }
+
+  .empty-list p {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-list-title {
+    font-size: 28px;
+  }
+
+  .my-list-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+}
