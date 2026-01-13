@@ -8,7 +8,7 @@
   "icon": "icon.png",
   "largeIcon": "icon.png",
   "bgImage": "bg.png",
-  "resolution": "1920x1080",
+  "resolution": "3840x2160",
   "disableBackHistoryAPI": false,
   "vendor": "MediaFlix",
   "appDescription": "Stream your personal media library on your LG TV"

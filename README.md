@@ -144,8 +144,9 @@ mediaflix/
 ### LG webOS TV
 - Native TV app with remote control navigation
 - D-pad and voice control support
-- Optimized for 1920x1080 displays
-- 10-foot UI design
+- **4K UHD Support (3840x2160)** - Optimized for modern TVs
+- 10-foot UI design with scaled elements
+- Enhanced shadows and contrast for 4K clarity
 
 ---
 

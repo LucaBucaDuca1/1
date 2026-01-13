@@ -9,8 +9,8 @@ body {
     background-color: #141414;
     color: #fff;
     overflow: hidden;
-    width: 1920px;
-    height: 1080px;
+    width: 3840px;
+    height: 2160px;
 }
 
 #app {
@@ -23,12 +23,12 @@ body {
     display: none !important;
 }
 
-/* Navbar */
+/* Navbar - Scaled for 4K */
 .navbar {
     position: fixed;
     top: 0;
     width: 100%;
-    padding: 30px 60px;
+    padding: 60px 120px;
     background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
     z-index: 100;
     display: flex;
@@ -37,22 +37,22 @@ body {
 }
 
 .navbar-brand {
-    font-size: 42px;
+    font-size: 84px;
     font-weight: bold;
     color: #e50914;
-    letter-spacing: 3px;
+    letter-spacing: 6px;
 }
 
 .navbar-menu {
     display: flex;
-    gap: 40px;
+    gap: 80px;
 }
 
 .menu-item {
-    font-size: 28px;
-    padding: 15px 30px;
+    font-size: 56px;
+    padding: 30px 60px;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 16px;
     transition: all 0.3s ease;
 }
 
@@ -61,51 +61,51 @@ body {
     transform: scale(1.1);
 }
 
-/* Hero Section */
+/* Hero Section - Scaled for 4K */
 .hero {
-    height: 700px;
+    height: 1400px;
     background-size: cover;
     background-position: center;
-    padding: 150px 60px;
-    margin-bottom: 50px;
+    padding: 300px 120px;
+    margin-bottom: 100px;
 }
 
 .hero-content {
-    max-width: 900px;
+    max-width: 1800px;
 }
 
 .hero-title {
-    font-size: 72px;
+    font-size: 144px;
     font-weight: bold;
-    margin-bottom: 30px;
-    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.9);
+    margin-bottom: 60px;
+    text-shadow: 6px 6px 20px rgba(0, 0, 0, 0.9);
 }
 
 .hero-meta {
-    font-size: 28px;
-    margin-bottom: 30px;
+    font-size: 56px;
+    margin-bottom: 60px;
     display: flex;
-    gap: 30px;
+    gap: 60px;
 }
 
 .hero-description {
-    font-size: 32px;
+    font-size: 64px;
     line-height: 1.5;
-    margin-bottom: 50px;
-    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.9);
+    margin-bottom: 100px;
+    text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.9);
 }
 
 .hero-buttons {
     display: flex;
-    gap: 30px;
+    gap: 60px;
 }
 
-/* Buttons */
+/* Buttons - Scaled for 4K */
 .btn {
-    padding: 20px 50px;
-    font-size: 28px;
+    padding: 40px 100px;
+    font-size: 56px;
     border: none;
-    border-radius: 8px;
+    border-radius: 16px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
@@ -134,14 +134,14 @@ body {
 }
 
 .btn-back {
-    padding: 15px 40px;
-    font-size: 28px;
+    padding: 30px 80px;
+    font-size: 56px;
     background-color: rgba(0, 0, 0, 0.7);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 16px;
     cursor: pointer;
-    margin-bottom: 30px;
+    margin-bottom: 60px;
 }
 
 .btn-back.focused {
@@ -149,29 +149,29 @@ body {
     transform: scale(1.05);
 }
 
-/* Media Rows */
+/* Media Rows - Scaled for 4K */
 .media-rows {
-    padding: 0 60px;
-    margin-top: -150px;
+    padding: 0 120px;
+    margin-top: -300px;
     position: relative;
     z-index: 10;
 }
 
 .media-row {
-    margin-bottom: 60px;
+    margin-bottom: 120px;
 }
 
 .row-title {
-    font-size: 36px;
-    margin-bottom: 30px;
+    font-size: 72px;
+    margin-bottom: 60px;
     font-weight: 600;
 }
 
 .row-items {
     display: flex;
-    gap: 20px;
+    gap: 40px;
     overflow-x: auto;
-    padding: 20px 0;
+    padding: 40px 0;
     scrollbar-width: none;
 }
 
@@ -180,9 +180,9 @@ body {
 }
 
 .row-item {
-    min-width: 280px;
-    height: 420px;
-    border-radius: 12px;
+    min-width: 560px;
+    height: 840px;
+    border-radius: 24px;
     overflow: hidden;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -192,7 +192,7 @@ body {
 .row-item.focused {
     transform: scale(1.15);
     z-index: 50;
-    box-shadow: 0 0 30px rgba(229, 9, 20, 0.8);
+    box-shadow: 0 0 60px rgba(229, 9, 20, 0.8);
 }
 
 .row-item img {
@@ -206,68 +206,68 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 20px;
+    padding: 40px;
     background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%);
 }
 
 .item-title {
-    font-size: 24px;
+    font-size: 48px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 .item-meta {
-    font-size: 18px;
+    font-size: 36px;
     color: #b3b3b3;
 }
 
-/* Details View */
+/* Details View - Scaled for 4K */
 .details-view {
-    padding: 150px 60px;
-    min-height: 1080px;
+    padding: 300px 120px;
+    min-height: 2160px;
     background-size: cover;
     background-position: center;
 }
 
 .details-content {
-    max-width: 1200px;
+    max-width: 2400px;
 }
 
 #details-title {
-    font-size: 72px;
-    margin-bottom: 30px;
+    font-size: 144px;
+    margin-bottom: 60px;
 }
 
 .details-meta {
-    font-size: 28px;
-    margin-bottom: 30px;
+    font-size: 56px;
+    margin-bottom: 60px;
     display: flex;
-    gap: 30px;
+    gap: 60px;
 }
 
 #details-description {
-    font-size: 32px;
+    font-size: 64px;
     line-height: 1.5;
-    margin-bottom: 50px;
-    max-width: 1000px;
+    margin-bottom: 100px;
+    max-width: 2000px;
 }
 
 .seasons {
-    margin-top: 60px;
+    margin-top: 120px;
 }
 
-/* Video Player */
+/* Video Player - Scaled for 4K */
 .player {
     width: 100%;
-    height: 1080px;
+    height: 2160px;
     background-color: #000;
     position: relative;
 }
 
 .player-back {
     position: absolute;
-    top: 30px;
-    left: 60px;
+    top: 60px;
+    left: 120px;
     z-index: 200;
 }
 
@@ -279,33 +279,33 @@ body {
 
 .player-info {
     position: absolute;
-    bottom: 100px;
-    left: 60px;
-    right: 60px;
+    bottom: 200px;
+    left: 120px;
+    right: 120px;
 }
 
 #player-title {
-    font-size: 48px;
+    font-size: 96px;
 }
 
-/* Loading */
+/* Loading - Scaled for 4K */
 .loading {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 1080px;
-    font-size: 36px;
+    height: 2160px;
+    font-size: 72px;
 }
 
 .spinner {
-    border: 8px solid rgba(255, 255, 255, 0.1);
-    border-top: 8px solid #e50914;
+    border: 16px solid rgba(255, 255, 255, 0.1);
+    border-top: 16px solid #e50914;
     border-radius: 50%;
-    width: 100px;
-    height: 100px;
+    width: 200px;
+    height: 200px;
     animation: spin 1s linear infinite;
-    margin-bottom: 30px;
+    margin-bottom: 60px;
 }
 
 @keyframes spin {
@@ -313,8 +313,86 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Focus Highlight */
+/* Focus Highlight - Enhanced for 4K */
 .focused {
-    outline: 4px solid #e50914;
-    outline-offset: 4px;
+    outline: 8px solid #e50914;
+    outline-offset: 8px;
+}
+
+/* Enhanced Visual Effects for 4K */
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.95) 100%);
+    pointer-events: none;
+}
+
+.details-view::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.95) 100%);
+    pointer-events: none;
+}
+
+/* High DPI Optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* Performance Optimization for 4K */
+.row-item,
+.btn,
+.menu-item {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* Smooth Scrolling for 4K */
+.row-items {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Text Shadow for Better Readability on 4K */
+.hero-title,
+.hero-description,
+#details-title,
+#details-description {
+    text-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.8),
+        0 8px 16px rgba(0, 0, 0, 0.6),
+        0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Improved Contrast for 4K Displays */
+.navbar-brand {
+    text-shadow: 0 4px 12px rgba(229, 9, 20, 0.6);
+}
+
+.menu-item:not(.focused) {
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+/* Gradient Overlays for Better Visual Hierarchy */
+.item-overlay {
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.95) 0%,
+        rgba(0,0,0,0.85) 30%,
+        rgba(0,0,0,0.6) 60%,
+        transparent 100%
+    );
 }
