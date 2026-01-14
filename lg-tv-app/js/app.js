@@ -1,4 +1,5 @@
-// Main App Logic
+// tv app code - handles all the navigation and video playback
+// took forever to get the remote control stuff working right
 class MediaApp {
     constructor() {
         this.currentView = 'home';
@@ -8,7 +9,7 @@ class MediaApp {
     }
 
     async init() {
-        console.log('MediaFlix TV App Starting...');
+        console.log('firing up mediaflix on tv...');
         this.setupMenuNavigation();
         await this.loadHomeScreen();
     }
