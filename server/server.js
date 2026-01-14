@@ -8,6 +8,14 @@ const { db, initDatabase, dbHelpers } = require('./database');
 const { authenticateToken, optionalAuth, requireRole, login, register } = require('./auth');
 const crypto = require('crypto');
 
+if (process.env.JWT_SECRET === 'your-secret-key-change-in-production' || !process.env.JWT_SECRET) {
+  console.error('\n❌ SECURITY WARNING: JWT_SECRET not set or using default!');
+  console.error('   Set JWT_SECRET in server/.env before running in production.\n');
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -60,16 +68,24 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // 5gb max - tested with a 4.2gb movie file, works fine
+  limits: {
+    fileSize: 5 * 1024 * 1024 * 1024,
+    files: 10
+  },
   fileFilter: function (req, file, cb) {
-    const allowedTypes = /mp4|mkv|avi|mov|webm|jpg|jpeg|png/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype) || file.mimetype.startsWith('video/');
+    const allowedVideoExts = ['.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v', '.flv', '.wmv'];
+    const allowedImageExts = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowedVideoMimes = ['video/mp4', 'video/x-matroska', 'video/x-msvideo', 'video/quicktime', 'video/webm', 'video/x-m4v'];
+    const allowedImageMimes = ['image/jpeg', 'image/png', 'image/webp'];
 
-    if (extname && mimetype) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const isVideo = allowedVideoExts.includes(ext) && (allowedVideoMimes.includes(file.mimetype) || file.mimetype.startsWith('video/'));
+    const isImage = allowedImageExts.includes(ext) && allowedImageMimes.includes(file.mimetype);
+
+    if (isVideo || isImage) {
       return cb(null, true);
     } else {
-      cb(new Error('Only video files and images are allowed!'));
+      cb(new Error(`File type not allowed: ${ext}`));
     }
   }
 });
@@ -150,6 +166,9 @@ app.post('/api/media/upload', authenticateToken, requireRole('uploader', 'admin'
       if (err) {
         return res.status(500).json({ error: err.message });
       }
+
+      logAudit(req.user.id, 'media.upload', 'media', this.lastID, { title: cleanTitle, type }, req.ip);
+
       res.json({
         success: true,
         message: 'Media uploaded successfully',
@@ -795,6 +814,8 @@ app.delete('/api/media/:id', authenticateToken, requireRole('uploader', 'admin')
         }
       });
 
+      logAudit(req.user.id, 'media.delete', 'media', id, { video_url: media.video_url }, req.ip);
+
       res.json({ message: 'Media deleted' });
     });
   });
@@ -1101,6 +1122,9 @@ app.post('/api/api-keys', authenticateToken, (req, res) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
+
+      logAudit(req.user.id, 'api_key.create', 'api_key', this.lastID, { name: name || 'Unnamed Key' }, req.ip);
+
       res.status(201).json({
         id: this.lastID,
         key: apiKey,

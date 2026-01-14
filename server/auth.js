@@ -1,9 +1,16 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { dbHelpers } = require('./database');
+const { db, dbHelpers } = require('./database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
+
+function logAudit(userId, action, resourceType, resourceId, details, ipAddress) {
+  db.run(
+    'INSERT INTO audit_log (user_id, action, resource_type, resource_id, details, ip_address) VALUES (?, ?, ?, ?, ?, ?)',
+    [userId, action, resourceType, resourceId, JSON.stringify(details), ipAddress]
+  );
+}
 
 function generateToken(user) {
   return jwt.sign(
@@ -83,6 +90,8 @@ async function login(req, res) {
     }
 
     const token = generateToken(user);
+
+    logAudit(user.id, 'auth.login', 'user', user.id, { username }, req.ip);
 
     res.json({
       token,
