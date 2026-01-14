@@ -1,6 +1,6 @@
 // HomeFlix Server by zeloz
 // my own netflix clone, pretty proud of this one ngl
-// TODO: maybe add subtitle support later?
+// might add subtitle support later if i need it
 
 require('dotenv').config();
 const express = require('express');

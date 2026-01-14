@@ -166,7 +166,7 @@ check out these if you need more details:
 ### folder structure
 
 ```
-mediaflix/
+homeflix/
 ├── server/              # Backend API (Node.js + Express)
 │   ├── server.js        # Main server file
 │   ├── database.js      # SQLite database & queries
@@ -588,4 +588,4 @@ Then visit http://localhost:3000 and enjoy! 🍿
 
 ---
 
-**Made with ❤️ by the HomeFlix team**
+made by **zeloz**

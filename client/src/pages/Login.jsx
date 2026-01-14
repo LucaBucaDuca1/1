@@ -43,7 +43,7 @@ const Login = () => {
       <div className="auth-content">
         <div className="auth-card">
           <div className="auth-header">
-            <h1>MediaFlix</h1>
+            <h1>HomeFlix</h1>
             <p>Sign in to continue</p>
           </div>
 
@@ -85,7 +85,7 @@ const Login = () => {
 
           <div className="auth-footer">
             <p>
-              New to MediaFlix? <Link to="/register">Sign up now</Link>
+              New to HomeFlix? <Link to="/register">Sign up now</Link>
             </p>
           </div>
         </div>

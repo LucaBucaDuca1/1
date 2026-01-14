@@ -6,7 +6,7 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    container_name: mediaflix-server
+    container_name: homeflix-server
     restart: unless-stopped
     ports:
       - "${SERVER_PORT:-3001}:3001"
@@ -20,7 +20,7 @@ services:
       - ./server/media:/app/media
       - ./server/data:/app/data
     networks:
-      - mediaflix-network
+      - homeflix-network
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
       interval: 30s
@@ -35,14 +35,14 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_API_URL=${VITE_API_URL:-http://localhost:3001}
-    container_name: mediaflix-client
+    container_name: homeflix-client
     restart: unless-stopped
     ports:
       - "${CLIENT_PORT:-3000}:80"
     depends_on:
       - server
     networks:
-      - mediaflix-network
+      - homeflix-network
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
       interval: 30s
@@ -52,7 +52,7 @@ services:
   # Nginx Reverse Proxy (Optional - for production)
   nginx:
     image: nginx:alpine
-    container_name: mediaflix-nginx
+    container_name: homeflix-nginx
     restart: unless-stopped
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
@@ -64,12 +64,12 @@ services:
       - server
       - client
     networks:
-      - mediaflix-network
+      - homeflix-network
     profiles:
       - production
 
 networks:
-  mediaflix-network:
+  homeflix-network:
     driver: bridge
 
 volumes:

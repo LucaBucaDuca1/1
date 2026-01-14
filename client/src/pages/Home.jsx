@@ -56,7 +56,7 @@ const Home = () => {
       <Hero media={featured} />
 
       <div className="rows-container">
-        <MediaRow title="Popular on MediaFlix" items={allMedia.slice(0, 10)} />
+        <MediaRow title="Popular on HomeFlix" items={allMedia.slice(0, 10)} />
 
         {Object.entries(moviesByGenre).map(([genre, items]) => (
           <MediaRow key={genre} title={genre} items={items} />

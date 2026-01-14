@@ -57,7 +57,7 @@ const Register = () => {
       <div className="auth-content">
         <div className="auth-card">
           <div className="auth-header">
-            <h1>MediaFlix</h1>
+            <h1>HomeFlix</h1>
             <p>Create your account</p>
           </div>
 
