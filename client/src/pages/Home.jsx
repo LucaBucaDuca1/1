@@ -7,6 +7,8 @@ import '../styles/Home.css';
 const Home = () => {
   const [featured, setFeatured] = useState(null);
   const [allMedia, setAllMedia] = useState([]);
+  const [recentlyAdded, setRecentlyAdded] = useState([]);
+  const [trending, setTrending] = useState([]);
   const [moviesByGenre, setMoviesByGenre] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -18,9 +20,11 @@ const Home = () => {
     try {
       setLoading(true);
 
-      const [featuredRes, mediaRes] = await Promise.all([
+      const [featuredRes, mediaRes, recentRes, trendingRes] = await Promise.all([
         axios.get('/api/featured'),
-        axios.get('/api/media')
+        axios.get('/api/media'),
+        axios.get('/api/media/recently-added?limit=20'),
+        axios.get('/api/media/trending?limit=20')
       ]);
 
       if (featuredRes.data.length > 0) {
@@ -28,6 +32,8 @@ const Home = () => {
       }
 
       setAllMedia(mediaRes.data);
+      setRecentlyAdded(recentRes.data);
+      setTrending(trendingRes.data);
 
       const genres = {};
       mediaRes.data.forEach(item => {
@@ -56,6 +62,14 @@ const Home = () => {
       <Hero media={featured} />
 
       <div className="rows-container">
+        {trending.length > 0 && (
+          <MediaRow title="🔥 Trending Now" items={trending} />
+        )}
+
+        {recentlyAdded.length > 0 && (
+          <MediaRow title="🆕 Recently Added" items={recentlyAdded} />
+        )}
+
         <MediaRow title="Popular on HomeFlix" items={allMedia.slice(0, 10)} />
 
         {Object.entries(moviesByGenre).map(([genre, items]) => (

@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles/Hero.css';
 
-const Hero = ({ media }) => {
+const Hero = ({ media, onRandomMovie }) => {
   const navigate = useNavigate();
+  const [loadingRandom, setLoadingRandom] = useState(false);
+
+  const handleRandomMovie = async () => {
+    setLoadingRandom(true);
+    try {
+      const res = await axios.get('/api/media/random');
+      if (res.data) {
+        if (onRandomMovie) {
+          onRandomMovie(res.data);
+        } else {
+          navigate(`/details/${res.data.id}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching random movie:', error);
+    } finally {
+      setLoadingRandom(false);
+    }
+  };
 
   if (!media) return null;
 
@@ -42,6 +62,16 @@ const Hero = ({ media }) => {
               <line x1="12" y1="8" x2="12.01" y2="8"/>
             </svg>
             More Info
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={handleRandomMovie}
+            disabled={loadingRandom}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            {loadingRandom ? 'Loading...' : 'Random'}
           </button>
         </div>
       </div>
