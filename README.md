@@ -112,12 +112,25 @@ that's it, your movie shows up instantly in the library
 
 if you have a ton of files to add at once:
 
-**option 1: upload through web**
+**option 1: windows smart uploader (easiest)**
+- perfect for windows users
+- run `HomeFlix-Uploader.ps1` (right-click > Run with PowerShell)
+- drag and drop movies or entire show folders
+- automatically organizes everything
+- see [UPLOADER-README.md](./UPLOADER-README.md) for details
+
+supports:
+```
+Movies: Inception (2010).mp4 → automatically sorted
+Shows: Breaking Bad/Season 1/S01E01.mp4 → auto-organized
+```
+
+**option 2: upload through web**
 - go to /upload page
 - upload each file with metadata
 - takes time but metadata is added automatically
 
-**option 2: manual copy (faster for bulk)**
+**option 3: manual copy (for linux/mac)**
 ```bash
 # check where your media folder is
 ./scripts/media-stats.sh
