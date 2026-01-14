@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import MyList from './pages/MyList';
 import Profile from './pages/Profile';
 import Upload from './pages/Upload';
+import Admin from './pages/Admin';
 import LoadingSpinner from './components/LoadingSpinner';
 
 // Protected Route Component
@@ -81,6 +82,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Upload />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <Admin />
             </ProtectedRoute>
           }
         />
