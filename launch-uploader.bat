@@ -46,23 +46,17 @@ if /i "%POLICY%"=="Restricted" (
 
 echo Launching HomeFlix Uploader...
 echo.
-echo If you see errors, they will be displayed below:
-echo ----------------------------------------
-echo.
 
+REM Run the uploader (it will keep the window open on errors)
 powershell -ExecutionPolicy Bypass -File "%~dp0HomeFlix-Uploader.ps1"
 
+REM If we get here and there was an error, show a message
 if %ERRORLEVEL% NEQ 0 (
     echo.
     echo ----------------------------------------
-    echo ERROR: Uploader failed to start!
-    echo Error code: %ERRORLEVEL%
-    echo.
-    echo Common fixes:
-    echo 1. Make sure .NET Framework 4.5+ is installed
-    echo 2. Run as Administrator if you get permission errors
-    echo 3. Check that HomeFlix-Uploader.ps1 exists in this folder
-    echo.
+    echo The uploader closed with an error.
+    echo If you didn't see an error message above, try running:
+    echo   .\test-uploader.ps1
+    echo to diagnose the issue.
+    pause
 )
-
-pause

@@ -5,22 +5,55 @@
 #   - show folders: "Breaking Bad/Season 1/Episode 1.mp4"
 # - zeloz
 
-# Error handling wrapper
+# Keep console open on error
+trap {
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Red
+    Write-Host "FATAL ERROR - Uploader crashed!" -ForegroundColor Red
+    Write-Host "========================================" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Location: $($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Press any key to close..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
+
 $ErrorActionPreference = "Stop"
 
+Write-Host "Loading HomeFlix Uploader..." -ForegroundColor Cyan
+
+# Try to load required assemblies
+Write-Host "  Loading Windows Forms..." -NoNewline
 try {
-    # Try to load required assemblies
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
+    Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+    Write-Host " OK" -ForegroundColor Green
 } catch {
-    [System.Windows.Forms.MessageBox]::Show(
-        "Failed to load required components.`n`n" +
-        "Error: $($_.Exception.Message)`n`n" +
-        "Make sure .NET Framework 4.5 or higher is installed.",
-        "HomeFlix Uploader Error",
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Error
-    )
+    Write-Host " FAILED" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Solution: Install .NET Framework 4.8" -ForegroundColor Yellow
+    Write-Host "Download: https://dotnet.microsoft.com/download/dotnet-framework/net48" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Press any key to close..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
+
+Write-Host "  Loading System.Drawing..." -NoNewline
+try {
+    Add-Type -AssemblyName System.Drawing -ErrorAction Stop
+    Write-Host " OK" -ForegroundColor Green
+} catch {
+    Write-Host " FAILED" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Press any key to close..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
 
@@ -31,36 +64,46 @@ $MOVIES_PATH = Join-Path $SERVER_PATH "media\movies"
 $SHOWS_PATH = Join-Path $SERVER_PATH "media\shows"
 
 # Validate and create directories
-try {
-    if (-not (Test-Path $SERVER_PATH)) {
-        [System.Windows.Forms.MessageBox]::Show(
-            "HomeFlix server folder not found!`n`n" +
-            "Expected location: $SERVER_PATH`n`n" +
-            "Make sure you're running this script from the HomeFlix root directory.",
-            "Directory Not Found",
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Warning
-        )
-        exit 1
-    }
+Write-Host "  Checking directories..." -NoNewline
 
-    # Create media directories if they don't exist
+if (-not (Test-Path $SERVER_PATH)) {
+    Write-Host " FAILED" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "ERROR: HomeFlix server folder not found!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Expected location: $SERVER_PATH" -ForegroundColor Yellow
+    Write-Host "Script is running from: $PSScriptRoot" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Make sure you're running this from the HomeFlix root directory." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Press any key to close..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    exit 1
+}
+
+# Create media directories if they don't exist
+try {
     @($UPLOADS_PATH, $MOVIES_PATH, $SHOWS_PATH) | ForEach-Object {
         if (-not (Test-Path $_)) {
             New-Item -ItemType Directory -Path $_ -Force | Out-Null
         }
     }
+    Write-Host " OK" -ForegroundColor Green
 } catch {
-    [System.Windows.Forms.MessageBox]::Show(
-        "Failed to access or create directories.`n`n" +
-        "Error: $($_.Exception.Message)`n`n" +
-        "Make sure you have write permissions.",
-        "Directory Error",
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Error
-    )
+    Write-Host " FAILED" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "ERROR: Failed to create directories" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Make sure you have write permissions." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Press any key to close..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 }
+
+Write-Host "  Creating form..." -NoNewline
 
 # main form
 $form = New-Object System.Windows.Forms.Form
@@ -456,18 +499,29 @@ $form.Add_Shown({
     Log-Message "  Shows: Breaking Bad/Season 1/S01E01.mp4" "DarkGray"
 })
 
+Write-Host " OK" -ForegroundColor Green
+Write-Host ""
+Write-Host "Starting uploader..." -ForegroundColor Green
+Write-Host ""
+
 # Run with error handling
 try {
     [void]$form.ShowDialog()
 } catch {
-    [System.Windows.Forms.MessageBox]::Show(
-        "An error occurred while running the uploader.`n`n" +
-        "Error: $($_.Exception.Message)`n`n" +
-        "Stack trace: $($_.Exception.StackTrace)",
-        "Runtime Error",
-        [System.Windows.Forms.MessageBoxButtons]::OK,
-        [System.Windows.Forms.MessageBoxIcon]::Error
-    )
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Red
+    Write-Host "ERROR: Form crashed during runtime" -ForegroundColor Red
+    Write-Host "========================================" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host ""
+    if ($_.Exception.StackTrace) {
+        Write-Host "Stack trace:" -ForegroundColor Gray
+        Write-Host $_.Exception.StackTrace -ForegroundColor DarkGray
+    }
+    Write-Host ""
+    Write-Host "Press any key to close..." -ForegroundColor Gray
+    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     exit 1
 } finally {
     if ($form) {
