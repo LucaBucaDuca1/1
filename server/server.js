@@ -1,7 +1,3 @@
-// HomeFlix Server by zeloz
-// my own netflix clone, pretty proud of this one ngl
-// might add subtitle support later if i need it
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -14,12 +10,9 @@ const { authenticateToken, optionalAuth, login, register } = require('./auth');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// basic middleware
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // increased limit for larger payloads
+app.use(express.json({ limit: '10mb' }));
 app.use('/media', express.static(path.join(__dirname, 'media')));
-
-// basic security headers - not perfect but better than nothing
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
