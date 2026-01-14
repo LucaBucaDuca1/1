@@ -166,7 +166,7 @@ app.post('/api/media/upload', authenticateToken, upload.fields([
 
 // Get all media
 app.get('/api/media', optionalAuth, (req, res) => {
-  const { type, genre, search, limit = 50 } = req.query;
+  const { type, genre, search, limit = 50, sortBy = 'created_at', sortOrder = 'DESC', year, minRating } = req.query;
   let query = 'SELECT * FROM media WHERE 1=1';
   const params = [];
 
@@ -180,13 +180,28 @@ app.get('/api/media', optionalAuth, (req, res) => {
     params.push(genre);
   }
 
-  if (search) {
-    query += ' AND (title LIKE ? OR description LIKE ? OR cast LIKE ? OR tags LIKE ?)';
-    const searchTerm = `%${search}%`;
-    params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+  if (year) {
+    query += ' AND year = ?';
+    params.push(parseInt(year));
   }
 
-  query += ' ORDER BY created_at DESC LIMIT ?';
+  if (minRating) {
+    query += ' AND rating >= ?';
+    params.push(parseFloat(minRating));
+  }
+
+  if (search) {
+    query += ' AND (title LIKE ? OR description LIKE ? OR cast LIKE ? OR director LIKE ? OR tags LIKE ?)';
+    const searchTerm = `%${search}%`;
+    params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+  }
+
+  const validSortFields = ['title', 'year', 'rating', 'duration', 'created_at', 'view_count'];
+  const validSortOrders = ['ASC', 'DESC'];
+  const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'created_at';
+  const safeSortOrder = validSortOrders.includes(sortOrder.toUpperCase()) ? sortOrder.toUpperCase() : 'DESC';
+
+  query += ` ORDER BY ${safeSortBy} ${safeSortOrder} LIMIT ?`;
   params.push(parseInt(limit));
 
   db.all(query, params, (err, rows) => {
@@ -1004,6 +1019,114 @@ app.delete('/api/admin/media/bulk', authenticateToken, requireRole('admin'), (re
     }
   );
 });
+
+app.get('/api/api-keys', authenticateToken, (req, res) => {
+  db.all(
+    'SELECT id, name, key, created_at, last_used, expires_at FROM api_keys WHERE user_id = ? ORDER BY created_at DESC',
+    [req.user.id],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    }
+  );
+});
+
+app.post('/api/api-keys', authenticateToken, (req, res) => {
+  const { name, expiresIn } = req.body;
+  const apiKey = 'hf_' + crypto.randomBytes(32).toString('hex');
+  let expiresAt = null;
+
+  if (expiresIn) {
+    expiresAt = new Date(Date.now() + parseInt(expiresIn) * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  db.run(
+    'INSERT INTO api_keys (user_id, key, name, expires_at) VALUES (?, ?, ?, ?)',
+    [req.user.id, apiKey, name || 'Unnamed Key', expiresAt],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.status(201).json({
+        id: this.lastID,
+        key: apiKey,
+        name: name || 'Unnamed Key',
+        expiresAt
+      });
+    }
+  );
+});
+
+app.delete('/api/api-keys/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+
+  db.run(
+    'DELETE FROM api_keys WHERE id = ? AND user_id = ?',
+    [id, req.user.id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'API key deleted' });
+    }
+  );
+});
+
+app.get('/api/sessions', authenticateToken, (req, res) => {
+  db.all(
+    'SELECT id, device_name, ip_address, created_at, last_active FROM sessions WHERE user_id = ? ORDER BY last_active DESC',
+    [req.user.id],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    }
+  );
+});
+
+app.delete('/api/sessions/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+
+  db.run(
+    'DELETE FROM sessions WHERE id = ? AND user_id = ?',
+    [id, req.user.id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'Session revoked' });
+    }
+  );
+});
+
+app.get('/api/audit-log', authenticateToken, requireRole('admin'), (req, res) => {
+  const limit = parseInt(req.query.limit) || 100;
+
+  db.all(
+    `SELECT al.*, u.username
+     FROM audit_log al
+     LEFT JOIN users u ON al.user_id = u.id
+     ORDER BY al.created_at DESC
+     LIMIT ?`,
+    [limit],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    }
+  );
+});
+
+function logAudit(userId, action, resourceType, resourceId, details, ipAddress) {
+  db.run(
+    'INSERT INTO audit_log (user_id, action, resource_type, resource_id, details, ip_address) VALUES (?, ?, ?, ?, ?, ?)',
+    [userId, action, resourceType, resourceId, JSON.stringify(details), ipAddress]
+  );
+}
 
 app.get('/api/health', (req, res) => {
   const dbCheck = new Promise((resolve) => {
