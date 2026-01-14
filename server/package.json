@@ -2,6 +2,7 @@
   "name": "media-server",
   "version": "1.0.0",
   "description": "Backend server for media library",
+  "author": "zeloz",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

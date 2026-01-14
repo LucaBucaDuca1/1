@@ -1,6 +1,8 @@
-# 🎬 MediaFlix - Personal Media Server Suite
+# 🎬 MediaFlix
 
-A production-ready, Netflix-style media server with authentication, watch history, recommendations, and beautiful interfaces for desktop, mobile, and LG TV.
+my personal netflix clone for hosting my own movie/tv show library. supports desktop, mobile, and even my LG TV in the living room.
+
+made by **zeloz**
 
 ![MediaFlix](https://img.shields.io/badge/Version-2.0.0-red.svg)
 ![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20LG%20TV-blue.svg)
@@ -9,122 +11,117 @@ A production-ready, Netflix-style media server with authentication, watch histor
 
 ---
 
-## ✨ Features
+## what it does
 
-### 🔐 User Management
-- **JWT Authentication** - Secure login system
-- **User Profiles** - Personalized avatars and settings
-- **Multiple Users** - Each user gets their own experience
+### user stuff
+- login/register with JWT auth
+- multiple user profiles (each person in the house can have their own)
+- personal avatars and settings
 
-### 📺 Content Features
-- **Upload Media** - Easy upload interface for movies and TV shows (up to 5GB per file)
-- **Watch History** - Resume playback where you left off
-- **My List** - Save favorites for later
-- **Recommendations** - Smart content suggestions based on your tastes
-- **Search** - Find content by title, genre, cast, or tags
-- **Continue Watching** - Pick up right where you stopped
+### media features
+- upload your own movies & tv shows (up to 5gb per file)
+- watch history so you can resume where you left off
+- my list feature to save favorites
+- recommendations based on what you watch
+- search by title, genre, cast, tags, whatever
+- continue watching row on homepage
 
-### 🎨 Beautiful UI
-- **Modern Design** - Netflix-inspired interface with glassmorphism
-- **Responsive** - Perfect on phone, tablet, desktop, and TV
-- **Smooth Animations** - Polished transitions and effects
-- **Dark Theme** - Easy on the eyes
+### design
+- looks like netflix but with my own twist (glassmorphism effects are sick)
+- works on everything - phone, tablet, desktop, 4K TV
+- dark theme because light themes hurt my eyes
+- smooth animations
 
-### 🚀 Easy Deployment
-- **One-Command Install** - Get running in seconds
-- **Docker Support** - Containerized for easy deployment
-- **Multi-Platform** - Works on Linux, macOS, Windows
-- **Cloud Ready** - Deploy to AWS, GCP, DigitalOcean, etc.
+### deployment
+- super easy to set up (just run a script)
+- docker support if you're into that
+- works on linux, mac, windows
+- can deploy to any cloud provider
 
 ---
 
-## 🚀 Quick Start
+## 🚀 how to run it
 
-### Method 1: Simple Start (Development)
+### easiest way (development mode)
 
-**Linux/macOS:**
+just run one of these depending on your OS:
+
+**linux/mac:**
 ```bash
 ./start.sh
 ```
 
-**Windows:**
+**windows:**
 ```cmd
 start.bat
 ```
 
-**Or using npm:**
+**or if you prefer npm:**
 ```bash
 npm run dev
 ```
 
-This will automatically:
-- Install all dependencies
-- Start the backend server (http://localhost:3001)
-- Start the frontend client (http://localhost:5173)
+this will:
+- auto install dependencies if you don't have them
+- start the server on http://localhost:3001
+- start the frontend on http://localhost:5173
 
-### Method 2: Docker (Production)
+### docker way (if you want)
 
-### Prerequisites
-- Docker and Docker Compose ([Install Docker Desktop](https://www.docker.com/products/docker-desktop))
-- 2GB+ RAM
-- 10GB+ disk space
+you'll need docker installed first (obviously)
 
-### Installation
-
-**Linux/macOS:**
+**linux/mac:**
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-**Windows PowerShell:**
+**windows powershell:**
 ```powershell
 .\install.ps1
 ```
 
-**Manual Docker Compose:**
+**or do it manually:**
 ```bash
 cp .env.example .env
 docker-compose up -d
 ```
 
-### Access
-- **Frontend:** http://localhost:3000
-- **Backend:** http://localhost:3001/api
+then go to:
+- frontend: http://localhost:3000
+- backend api: http://localhost:3001/api
 
-### Default Account
-- **Username:** `demo`
-- **Password:** `demo123`
+### test account
+username: `demo`
+password: `demo123`
 
-### 📤 Uploading Movies & TV Shows
+### uploading your movies
 
-1. **Login** to your account (or create one if you haven't)
-2. Click **"Upload"** in the navigation bar
-3. Fill in the media details:
-   - Title, description, type (movie/series/documentary)
-   - Genre, year, duration, rating
-   - Cast, director, tags
-4. Select files:
-   - **Video file** (MP4, MKV, AVI, MOV, WebM - up to 5GB)
-   - **Poster image** (Optional - for the thumbnail)
-   - **Backdrop image** (Optional - for the hero background)
-5. Click **"Upload Media"** and wait for the upload to complete
+1. login (or make an account)
+2. hit the "upload" button in the nav bar
+3. fill out the form - title and type are required, rest is optional
+4. pick your files:
+   - video (mp4, mkv, avi, mov, webm - max 5gb)
+   - poster image if you want
+   - backdrop image for the hero section
+5. hit upload and wait
 
-Your content will immediately appear in the library!
+that's it, your movie shows up instantly in the library
 
 ---
 
-## 📖 Documentation
+## 📖 more info
 
-- **[Quick Start Guide](./QUICKSTART.md)** - Get up and running in 5 minutes
-- **[Deployment Guide](./DEPLOYMENT.md)** - Production deployment for VPS, cloud platforms
-- **[API Documentation](#api-endpoints)** - Complete REST API reference
+check out these if you need more details:
+- [QUICKSTART.md](./QUICKSTART.md) - detailed setup guide
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - how to deploy to a vps/cloud
+- [API docs](#api-endpoints) - all the endpoints
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ how it's built
 
-### Project Structure
+### folder structure
 
 ```
 mediaflix/
@@ -151,43 +148,45 @@ mediaflix/
 └── install.ps1         # One-command installer (Windows)
 ```
 
-### Tech Stack
+### what's under the hood
 
-**Backend:**
-- Node.js 18+ with Express
-- SQLite database
-- JWT authentication with bcrypt
-- CORS enabled
+**backend:**
+- node.js + express (simple and works)
+- sqlite for database (no need for mysql/postgres, this is way easier)
+- JWT tokens for staying logged in
+- bcrypt for secure passwords
+- multer for handling file uploads
+- rate limiting to prevent spam
 
-**Frontend:**
-- React 18 with Hooks
-- Vite for blazing-fast builds
-- React Router for navigation
-- Axios for API calls
-- React Toastify for notifications
-- Framer Motion for animations
+**frontend:**
+- react 18 with hooks
+- vite for super fast dev builds
+- react router for navigation
+- axios for api calls
+- react toastify for those nice popup notifications
+- custom css with glassmorphism effects
 
-**Infrastructure:**
-- Docker & Docker Compose
-- Nginx reverse proxy
-- Health checks & monitoring
+**deployment:**
+- docker + docker compose (optional but recommended)
+- can run without docker too
+- works on any linux/mac/windows machine
 
 ---
 
-## 📱 Platforms
+## 📱 where it works
 
-### Web (Desktop & Mobile)
-- Responsive React application
-- Works on all modern browsers
-- Mobile-optimized touch interface
-- Progressive Web App ready
+### web (desktop & mobile)
+- responsive design, looks good everywhere
+- works on chrome, firefox, safari, edge, whatever
+- touch-friendly on mobile
+- could make it a PWA if i wanted to
 
-### LG webOS TV
-- Native TV app with remote control navigation
-- D-pad and voice control support
-- **4K UHD Support (3840x2160)** - Optimized for modern TVs
-- 10-foot UI design with scaled elements
-- Enhanced shadows and contrast for 4K clarity
+### lg webos tv (the cool part)
+- built a custom app for my LG TV
+- works with the remote control (d-pad navigation)
+- **supports 4k (3840x2160)** - looks amazing on my 65" tv
+- ui is scaled 2x so everything's readable from the couch
+- took forever to get the tv app working but totally worth it
 
 ---
 

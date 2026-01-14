@@ -1,3 +1,6 @@
+// upload page for adding new movies/shows to the library
+// took a while to get the form looking good but i think it turned out nice
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Upload.css';

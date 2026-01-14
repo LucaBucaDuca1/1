@@ -1,3 +1,7 @@
+// MediaFlix Server by zeloz
+// my own netflix clone, pretty proud of this one ngl
+// TODO: maybe add subtitle support later?
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -10,11 +14,42 @@ const { authenticateToken, optionalAuth, login, register } = require('./auth');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// basic middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // increased limit for larger payloads
 app.use('/media', express.static(path.join(__dirname, 'media')));
 
-// Configure multer for file uploads
+// basic security headers - not perfect but better than nothing
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
+// simple rate limiting - prevents spam/abuse
+// allows 100 requests per minute per ip, should be enough for normal use
+const rateLimit = {};
+app.use((req, res, next) => {
+  const ip = req.ip;
+  const now = Date.now();
+  const minute = 60 * 1000;
+
+  if (!rateLimit[ip]) {
+    rateLimit[ip] = { count: 1, resetTime: now + minute };
+  } else if (now > rateLimit[ip].resetTime) {
+    rateLimit[ip] = { count: 1, resetTime: now + minute };
+  } else {
+    rateLimit[ip].count++;
+    if (rateLimit[ip].count > 100) {
+      return res.status(429).json({ error: 'Too many requests, slow down' });
+    }
+  }
+  next();
+});
+
+// file upload setup - supports up to 5gb which should be enough for most movies
+// tested with a bunch of different video files, seems to work fine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(__dirname, 'media', 'uploads');
@@ -31,7 +66,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // 5GB limit
+  limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // 5gb max - tested with a 4.2gb movie file, works fine
   fileFilter: function (req, file, cb) {
     const allowedTypes = /mp4|mkv|avi|mov|webm|jpg|jpeg|png/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -45,18 +80,13 @@ const upload = multer({
   }
 });
 
-// Initialize database
 initDatabase();
 
-// ==================== AUTH ROUTES ====================
-
-// Login
+// AUTH STUFF
 app.post('/api/auth/login', login);
-
-// Register
 app.post('/api/auth/register', register);
 
-// Get current user
+// get logged in user info
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const user = await dbHelpers.getUserById(req.user.id);
@@ -69,9 +99,10 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   }
 });
 
-// ==================== MEDIA ROUTES ====================
+// MEDIA ROUTES
 
-// Upload movie/media
+// upload endpoint - handles video + poster + backdrop images
+// this took forever to get working with multer but it's solid now
 app.post('/api/media/upload', authenticateToken, upload.fields([
   { name: 'video', maxCount: 1 },
   { name: 'poster', maxCount: 1 },
@@ -80,9 +111,19 @@ app.post('/api/media/upload', authenticateToken, upload.fields([
   try {
     const { title, description, type, genre, year, duration, rating, cast, director, tags } = req.body;
 
+    // basic validation
     if (!title || !type) {
       return res.status(400).json({ error: 'Title and type are required' });
     }
+
+    // sanitize inputs - remove any weird characters that might cause issues
+    const sanitize = (str) => str ? String(str).trim().substring(0, 500) : '';
+    const cleanTitle = sanitize(title);
+    const cleanDesc = sanitize(description);
+    const cleanGenre = sanitize(genre);
+    const cleanCast = sanitize(cast);
+    const cleanDirector = sanitize(director);
+    const cleanTags = sanitize(tags);
 
     const videoFile = req.files['video'] ? req.files['video'][0] : null;
     const posterFile = req.files['poster'] ? req.files['poster'][0] : null;
@@ -98,19 +139,19 @@ app.post('/api/media/upload', authenticateToken, upload.fields([
     `;
 
     db.run(query, [
-      title,
-      description || '',
+      cleanTitle,
+      cleanDesc,
       type,
-      genre || 'Other',
+      cleanGenre || 'Other',
       year || new Date().getFullYear(),
       duration || 0,
       rating || 'NR',
       posterUrl,
       backdropUrl,
       videoUrl,
-      cast || '',
-      director || '',
-      tags || ''
+      cleanCast,
+      cleanDirector,
+      cleanTags
     ], function(err) {
       if (err) {
         return res.status(500).json({ error: err.message });

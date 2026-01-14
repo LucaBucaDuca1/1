@@ -1,35 +1,32 @@
 @echo off
-REM MediaFlix Quick Start Script for Windows
+REM quick start for windows
+REM - zeloz
 
 echo.
-echo ==============================================
-echo    MediaFlix - Starting your media server
-echo ==============================================
+echo firing up mediaflix...
 echo.
 
-REM Check if server dependencies are installed
+REM install dependencies if needed
 if not exist "server\node_modules" (
-    echo Installing server dependencies...
+    echo first time setup - installing server stuff...
     cd server
     call npm install
     cd ..
 )
 
-REM Check if client dependencies are installed
 if not exist "client\node_modules" (
-    echo Installing client dependencies...
+    echo installing client stuff...
     cd client
     call npm install
     cd ..
 )
 
 echo.
-echo Starting MediaFlix Server...
-echo Server: http://localhost:3001
-echo Client: http://localhost:5173
+echo starting everything...
+echo backend: http://localhost:3001
+echo frontend: http://localhost:5173
 echo.
-echo Press Ctrl+C to stop
+echo hit ctrl+c to stop
 echo.
 
-REM Start both server and client
 npm run dev

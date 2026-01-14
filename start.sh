@@ -1,29 +1,29 @@
 #!/bin/bash
 
-# MediaFlix Quick Start Script
+# quick start script for mediaflix
+# just run ./start.sh and everything should work
+# - zeloz
 
-echo "🎬 MediaFlix - Starting your media server..."
+echo "🎬 firing up mediaflix..."
 echo ""
 
-# Check if node_modules exists in server
+# install stuff if needed
 if [ ! -d "server/node_modules" ]; then
-    echo "📦 Installing server dependencies..."
+    echo "📦 first time setup - installing server dependencies..."
     cd server && npm install && cd ..
 fi
 
-# Check if node_modules exists in client
 if [ ! -d "client/node_modules" ]; then
-    echo "📦 Installing client dependencies..."
+    echo "📦 installing client dependencies..."
     cd client && npm install && cd ..
 fi
 
 echo ""
-echo "✅ Starting MediaFlix Server..."
-echo "📡 Server: http://localhost:3001"
-echo "🎨 Client: http://localhost:5173"
+echo "✅ starting everything up..."
+echo "📡 backend: http://localhost:3001"
+echo "🎨 frontend: http://localhost:5173"
 echo ""
-echo "Press Ctrl+C to stop"
+echo "hit ctrl+c to stop"
 echo ""
 
-# Start both server and client
 npm run dev

@@ -1,6 +1,7 @@
 {
   "name": "media-client",
   "version": "1.0.0",
+  "author": "zeloz",
   "type": "module",
   "scripts": {
     "dev": "vite",

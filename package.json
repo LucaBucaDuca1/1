@@ -2,6 +2,7 @@
   "name": "media-server-suite",
   "version": "1.0.0",
   "description": "Netflix-like media server for phone, desktop, and LG TV",
+  "author": "zeloz",
   "private": true,
   "workspaces": [
     "server",
