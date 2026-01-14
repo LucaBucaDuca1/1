@@ -5,7 +5,8 @@ const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 const { db, initDatabase, dbHelpers } = require('./database');
-const { authenticateToken, optionalAuth, login, register } = require('./auth');
+const { authenticateToken, optionalAuth, requireRole, login, register } = require('./auth');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -619,9 +620,410 @@ app.get('/api/stats', authenticateToken, (req, res) => {
     });
 });
 
-// Health check
+app.post('/api/auth/request-reset', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user) {
+      return res.json({ message: 'If email exists, reset link sent' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 3600000);
+
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
+        [resetToken, expires.toISOString(), user.id],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({
+      message: 'If email exists, reset link sent',
+      resetToken
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const user = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM users WHERE reset_token = ? AND reset_token_expires > datetime("now")',
+        [token],
+        (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        }
+      );
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await new Promise((resolve, reject) => {
+      db.run(
+        'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
+        [hashedPassword, user.id],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/media/recently-added', optionalAuth, (req, res) => {
+  const limit = parseInt(req.query.limit) || 20;
+
+  db.all(
+    'SELECT * FROM media ORDER BY created_at DESC LIMIT ?',
+    [limit],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    }
+  );
+});
+
+app.get('/api/media/trending', optionalAuth, (req, res) => {
+  const limit = parseInt(req.query.limit) || 20;
+  const days = parseInt(req.query.days) || 7;
+
+  db.all(
+    `SELECT m.*, COUNT(wh.id) as view_count
+     FROM media m
+     LEFT JOIN watch_history wh ON m.id = wh.media_id
+     WHERE wh.last_watched > datetime('now', '-${days} days') OR wh.last_watched IS NULL
+     GROUP BY m.id
+     ORDER BY view_count DESC, m.created_at DESC
+     LIMIT ?`,
+    [limit],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    }
+  );
+});
+
+app.get('/api/media/random', optionalAuth, (req, res) => {
+  db.get(
+    'SELECT * FROM media ORDER BY RANDOM() LIMIT 1',
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(row || null);
+    }
+  );
+});
+
+app.get('/api/admin/users', authenticateToken, requireRole('admin'), (req, res) => {
+  db.all(
+    'SELECT id, username, email, display_name, avatar, role, created_at, last_login FROM users ORDER BY created_at DESC',
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    }
+  );
+});
+
+app.put('/api/admin/users/:id/role', authenticateToken, requireRole('admin'), (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  if (!['viewer', 'uploader', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' });
+  }
+
+  db.run(
+    'UPDATE users SET role = ? WHERE id = ?',
+    [role, id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'Role updated', changes: this.changes });
+    }
+  );
+});
+
+app.delete('/api/admin/users/:id', authenticateToken, requireRole('admin'), (req, res) => {
+  const { id } = req.params;
+
+  if (parseInt(id) === req.user.id) {
+    return res.status(400).json({ error: 'Cannot delete your own account' });
+  }
+
+  db.run(
+    'DELETE FROM users WHERE id = ?',
+    [id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'User deleted', changes: this.changes });
+    }
+  );
+});
+
+app.get('/api/admin/storage', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const mediaPath = path.join(__dirname, 'media');
+
+    const getDirectorySize = (dirPath) => {
+      let totalSize = 0;
+      const files = fs.readdirSync(dirPath);
+
+      for (const file of files) {
+        const filePath = path.join(dirPath, file);
+        const stats = fs.statSync(filePath);
+
+        if (stats.isDirectory()) {
+          totalSize += getDirectorySize(filePath);
+        } else {
+          totalSize += stats.size;
+        }
+      }
+
+      return totalSize;
+    };
+
+    const totalSize = getDirectorySize(mediaPath);
+
+    const mediaCount = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as count FROM media', (err, row) => {
+        if (err) reject(err);
+        else resolve(row.count);
+      });
+    });
+
+    const userCount = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as count FROM users', (err, row) => {
+        if (err) reject(err);
+        else resolve(row.count);
+      });
+    });
+
+    res.json({
+      totalStorageBytes: totalSize,
+      totalStorageGB: (totalSize / (1024 * 1024 * 1024)).toFixed(2),
+      mediaCount,
+      userCount
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/collections', authenticateToken, (req, res) => {
+  db.all(
+    `SELECT c.*, COUNT(ci.id) as item_count
+     FROM collections c
+     LEFT JOIN collection_items ci ON c.id = ci.collection_id
+     WHERE c.user_id = ? OR c.is_public = 1
+     GROUP BY c.id
+     ORDER BY c.created_at DESC`,
+    [req.user.id],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json(rows);
+    }
+  );
+});
+
+app.post('/api/collections', authenticateToken, (req, res) => {
+  const { name, description, isPublic } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Collection name required' });
+  }
+
+  db.run(
+    'INSERT INTO collections (user_id, name, description, is_public) VALUES (?, ?, ?, ?)',
+    [req.user.id, name, description || '', isPublic ? 1 : 0],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.status(201).json({ id: this.lastID, name, description, isPublic });
+    }
+  );
+});
+
+app.get('/api/collections/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+
+  db.get(
+    `SELECT c.*, COUNT(ci.id) as item_count
+     FROM collections c
+     LEFT JOIN collection_items ci ON c.id = ci.collection_id
+     WHERE c.id = ? AND (c.user_id = ? OR c.is_public = 1)
+     GROUP BY c.id`,
+    [id, req.user.id],
+    (err, collection) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!collection) {
+        return res.status(404).json({ error: 'Collection not found' });
+      }
+
+      db.all(
+        `SELECT m.* FROM media m
+         JOIN collection_items ci ON m.id = ci.media_id
+         WHERE ci.collection_id = ?
+         ORDER BY ci.added_at DESC`,
+        [id],
+        (err, items) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          res.json({ ...collection, items });
+        }
+      );
+    }
+  );
+});
+
+app.post('/api/collections/:id/items', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const { mediaId } = req.body;
+
+  db.get('SELECT * FROM collections WHERE id = ? AND user_id = ?', [id, req.user.id], (err, collection) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!collection) {
+      return res.status(404).json({ error: 'Collection not found' });
+    }
+
+    db.run(
+      'INSERT INTO collection_items (collection_id, media_id) VALUES (?, ?)',
+      [id, mediaId],
+      function(err) {
+        if (err) {
+          if (err.message.includes('UNIQUE constraint')) {
+            return res.status(409).json({ error: 'Item already in collection' });
+          }
+          return res.status(500).json({ error: err.message });
+        }
+        res.status(201).json({ message: 'Item added to collection' });
+      }
+    );
+  });
+});
+
+app.delete('/api/collections/:id/items/:mediaId', authenticateToken, (req, res) => {
+  const { id, mediaId } = req.params;
+
+  db.get('SELECT * FROM collections WHERE id = ? AND user_id = ?', [id, req.user.id], (err, collection) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!collection) {
+      return res.status(404).json({ error: 'Collection not found' });
+    }
+
+    db.run(
+      'DELETE FROM collection_items WHERE collection_id = ? AND media_id = ?',
+      [id, mediaId],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Item removed from collection' });
+      }
+    );
+  });
+});
+
+app.delete('/api/collections/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+
+  db.run(
+    'DELETE FROM collections WHERE id = ? AND user_id = ?',
+    [id, req.user.id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'Collection deleted' });
+    }
+  );
+});
+
+app.delete('/api/admin/media/bulk', authenticateToken, requireRole('admin'), (req, res) => {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: 'Invalid media IDs' });
+  }
+
+  const placeholders = ids.map(() => '?').join(',');
+
+  db.run(
+    `DELETE FROM media WHERE id IN (${placeholders})`,
+    ids,
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'Media deleted', deleted: this.changes });
+    }
+  );
+});
+
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Media server is running' });
+  const dbCheck = new Promise((resolve) => {
+    db.get('SELECT 1', (err) => {
+      resolve(!err);
+    });
+  });
+
+  dbCheck.then(dbHealthy => {
+    res.json({
+      status: 'ok',
+      message: 'HomeFlix server running',
+      database: dbHealthy ? 'connected' : 'disconnected',
+      uptime: process.uptime(),
+      memory: {
+        used: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2) + 'MB',
+        total: (process.memoryUsage().heapTotal / 1024 / 1024).toFixed(2) + 'MB'
+      }
+    });
+  });
 });
 
 app.listen(PORT, () => {
