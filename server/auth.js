@@ -5,10 +5,9 @@ const { dbHelpers } = require('./database');
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '7d';
 
-// Generate JWT token
 function generateToken(user) {
   return jwt.sign(
-    { id: user.id, username: user.username },
+    { id: user.id, username: user.username, role: user.role || 'viewer' },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
@@ -49,7 +48,20 @@ function optionalAuth(req, res, next) {
   next();
 }
 
-// Login handler
+function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    next();
+  };
+}
+
 async function login(req, res) {
   try {
     const { username, password } = req.body;
@@ -79,7 +91,8 @@ async function login(req, res) {
         username: user.username,
         email: user.email,
         display_name: user.display_name,
-        avatar: user.avatar
+        avatar: user.avatar,
+        role: user.role || 'viewer'
       }
     });
   } catch (error) {
@@ -115,7 +128,8 @@ async function register(req, res) {
         username: user.username,
         email: user.email,
         display_name: user.display_name,
-        avatar: user.avatar
+        avatar: user.avatar,
+        role: user.role || 'viewer'
       }
     });
   } catch (error) {
@@ -127,6 +141,7 @@ async function register(req, res) {
 module.exports = {
   authenticateToken,
   optionalAuth,
+  requireRole,
   login,
   register,
   generateToken

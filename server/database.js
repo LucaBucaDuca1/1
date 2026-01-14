@@ -16,8 +16,11 @@ function initDatabase() {
         password TEXT NOT NULL,
         display_name TEXT,
         avatar TEXT DEFAULT 'avatar1.svg',
+        role TEXT DEFAULT 'viewer',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        last_login DATETIME
+        last_login DATETIME,
+        reset_token TEXT,
+        reset_token_expires DATETIME
       )
     `);
 
@@ -124,6 +127,89 @@ function initDatabase() {
       )
     `);
 
+    db.run(`
+      CREATE TABLE IF NOT EXISTS api_keys (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        key TEXT UNIQUE NOT NULL,
+        name TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_used DATETIME,
+        expires_at DATETIME,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        device_name TEXT,
+        ip_address TEXT,
+        user_agent TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_active DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS collections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        is_public BOOLEAN DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS collection_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        collection_id INTEGER NOT NULL,
+        media_id INTEGER NOT NULL,
+        added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+        FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE CASCADE,
+        UNIQUE(collection_id, media_id)
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS upload_queue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        filename TEXT NOT NULL,
+        filesize INTEGER,
+        status TEXT DEFAULT 'pending',
+        progress REAL DEFAULT 0,
+        error TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        completed_at DATETIME,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    db.run(`
+      CREATE TABLE IF NOT EXISTS audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        action TEXT NOT NULL,
+        resource_type TEXT,
+        resource_id INTEGER,
+        details TEXT,
+        ip_address TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      )
+    `);
+
+    runMigrations();
+
     // Create default user
     db.get('SELECT COUNT(*) as count FROM users', (err, row) => {
       if (!err && row.count === 0) {
@@ -133,13 +219,32 @@ function initDatabase() {
   });
 }
 
+function runMigrations() {
+  db.get("PRAGMA table_info(users)", (err, row) => {
+    if (!err) {
+      db.all("PRAGMA table_info(users)", (err, columns) => {
+        const columnNames = columns.map(col => col.name);
+
+        if (!columnNames.includes('role')) {
+          db.run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'viewer'");
+        }
+
+        if (!columnNames.includes('reset_token')) {
+          db.run("ALTER TABLE users ADD COLUMN reset_token TEXT");
+          db.run("ALTER TABLE users ADD COLUMN reset_token_expires DATETIME");
+        }
+      });
+    }
+  });
+}
+
 async function createDefaultUser() {
   const hashedPassword = await bcrypt.hash('demo123', 10);
 
   db.run(
-    `INSERT INTO users (username, email, password, display_name, avatar)
-     VALUES (?, ?, ?, ?, ?)`,
-    ['demo', 'demo@homeflix.local', hashedPassword, 'Demo User', 'avatar1.svg'],
+    `INSERT INTO users (username, email, password, display_name, avatar, role)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    ['demo', 'demo@homeflix.local', hashedPassword, 'Demo User', 'avatar1.svg', 'admin'],
     function(err) {
       if (!err) {
         console.log('✓ Default user created - Username: demo, Password: demo123');
