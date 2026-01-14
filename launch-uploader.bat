@@ -44,19 +44,5 @@ if /i "%POLICY%"=="Restricted" (
     )
 )
 
-echo Launching HomeFlix Uploader...
-echo.
-
-REM Run the uploader (it will keep the window open on errors)
-powershell -ExecutionPolicy Bypass -File "%~dp0HomeFlix-Uploader.ps1"
-
-REM If we get here and there was an error, show a message
-if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo ----------------------------------------
-    echo The uploader closed with an error.
-    echo If you didn't see an error message above, try running:
-    echo   .\test-uploader.ps1
-    echo to diagnose the issue.
-    pause
-)
+powershell -ExecutionPolicy Bypass -File "%~dp0launch-uploader.ps1"
+pause
