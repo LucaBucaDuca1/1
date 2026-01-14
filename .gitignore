@@ -14,14 +14,27 @@ yarn.lock
 *.db
 server/data/
 
-# Media files
-server/media/
+# Media files - keep structure but ignore actual video files
+server/media/uploads/*
+!server/media/uploads/.gitkeep
+server/media/movies/*
+!server/media/movies/.gitkeep
+server/media/shows/*
+!server/media/shows/.gitkeep
+server/media/placeholders/*
+!server/media/placeholders/.gitkeep
+
+# video files anywhere
 *.mp4
 *.avi
 *.mkv
 *.mov
 *.webm
 *.flv
+*.m4v
+*.wmv
+*.mpg
+*.mpeg
 
 # Build outputs
 client/dist/

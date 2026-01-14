@@ -108,6 +108,35 @@ password: `demo123`
 
 that's it, your movie shows up instantly in the library
 
+### bulk adding media (for large libraries)
+
+if you have a ton of files to add at once:
+
+**option 1: upload through web**
+- go to /upload page
+- upload each file with metadata
+- takes time but metadata is added automatically
+
+**option 2: manual copy (faster for bulk)**
+```bash
+# check where your media folder is
+./scripts/media-stats.sh
+
+# organize files from an external drive or download folder
+./scripts/organize-media.sh /path/to/your/movies
+
+# then use the upload page to add metadata for each file
+```
+
+**media organization:**
+- see `server/media/README.md` for detailed organization tips
+- movies go in `server/media/movies/`
+- shows go in `server/media/shows/` (organized by show name)
+- uploaded files automatically go to `server/media/uploads/`
+
+**supported formats:**
+mp4, mkv, avi, mov, webm (basically everything)
+
 ---
 
 ## 📖 more info
