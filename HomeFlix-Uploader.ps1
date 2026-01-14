@@ -5,14 +5,62 @@
 #   - show folders: "Breaking Bad/Season 1/Episode 1.mp4"
 # - zeloz
 
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
+# Error handling wrapper
+$ErrorActionPreference = "Stop"
+
+try {
+    # Try to load required assemblies
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+} catch {
+    [System.Windows.Forms.MessageBox]::Show(
+        "Failed to load required components.`n`n" +
+        "Error: $($_.Exception.Message)`n`n" +
+        "Make sure .NET Framework 4.5 or higher is installed.",
+        "HomeFlix Uploader Error",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Error
+    )
+    exit 1
+}
 
 # config
 $SERVER_PATH = Join-Path $PSScriptRoot "server"
 $UPLOADS_PATH = Join-Path $SERVER_PATH "media\uploads"
 $MOVIES_PATH = Join-Path $SERVER_PATH "media\movies"
 $SHOWS_PATH = Join-Path $SERVER_PATH "media\shows"
+
+# Validate and create directories
+try {
+    if (-not (Test-Path $SERVER_PATH)) {
+        [System.Windows.Forms.MessageBox]::Show(
+            "HomeFlix server folder not found!`n`n" +
+            "Expected location: $SERVER_PATH`n`n" +
+            "Make sure you're running this script from the HomeFlix root directory.",
+            "Directory Not Found",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Warning
+        )
+        exit 1
+    }
+
+    # Create media directories if they don't exist
+    @($UPLOADS_PATH, $MOVIES_PATH, $SHOWS_PATH) | ForEach-Object {
+        if (-not (Test-Path $_)) {
+            New-Item -ItemType Directory -Path $_ -Force | Out-Null
+        }
+    }
+} catch {
+    [System.Windows.Forms.MessageBox]::Show(
+        "Failed to access or create directories.`n`n" +
+        "Error: $($_.Exception.Message)`n`n" +
+        "Make sure you have write permissions.",
+        "Directory Error",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Error
+    )
+    exit 1
+}
 
 # main form
 $form = New-Object System.Windows.Forms.Form
@@ -408,4 +456,21 @@ $form.Add_Shown({
     Log-Message "  Shows: Breaking Bad/Season 1/S01E01.mp4" "DarkGray"
 })
 
-[void]$form.ShowDialog()
+# Run with error handling
+try {
+    [void]$form.ShowDialog()
+} catch {
+    [System.Windows.Forms.MessageBox]::Show(
+        "An error occurred while running the uploader.`n`n" +
+        "Error: $($_.Exception.Message)`n`n" +
+        "Stack trace: $($_.Exception.StackTrace)",
+        "Runtime Error",
+        [System.Windows.Forms.MessageBoxButtons]::OK,
+        [System.Windows.Forms.MessageBoxIcon]::Error
+    )
+    exit 1
+} finally {
+    if ($form) {
+        $form.Dispose()
+    }
+}

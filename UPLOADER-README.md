@@ -4,6 +4,20 @@ the easy way to add your media to homeflix. just drag and drop, it figures out t
 
 made by zeloz
 
+---
+
+## Quick Start
+
+**Easiest way to launch:**
+
+Double-click: **`launch-uploader.bat`**
+
+The launcher will check your system and fix common issues automatically.
+
+**Having trouble?** See [UPLOADER-TROUBLESHOOTING.md](./UPLOADER-TROUBLESHOOTING.md)
+
+---
+
 ## what it does
 
 automatically organizes your movies and TV shows:
@@ -12,10 +26,12 @@ automatically organizes your movies and TV shows:
 
 ## how to use
 
-1. **run it**: right-click `HomeFlix-Uploader.ps1` and select "Run with PowerShell"
+1. **run it**: double-click `launch-uploader.bat` (or right-click `HomeFlix-Uploader.ps1` → "Run with PowerShell")
 2. **drop files**: drag and drop movies or show folders into the window
 3. **click process**: hit the "Process Files" button
 4. **done**: files are automatically organized in `server/media/`
+
+**Note:** If the app won't open, see [UPLOADER-TROUBLESHOOTING.md](./UPLOADER-TROUBLESHOOTING.md) for solutions.
 
 ## supported formats
 
