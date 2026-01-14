@@ -44,8 +44,8 @@ $form.Controls.Add($subtitleLabel)
 $instructLabel = New-Object System.Windows.Forms.Label
 $instructLabel.Text = @"
 Drop files or folders here:
-  • Movies: Drop video files directly
-  • Shows: Drop show folder (with seasons inside)
+  - Movies: Drop video files directly
+  - Shows: Drop show folder (with seasons inside)
 "@
 $instructLabel.Font = New-Object System.Drawing.Font("Segoe UI",10)
 $instructLabel.AutoSize = $true
@@ -64,7 +64,7 @@ $form.Controls.Add($dropZone)
 # drop label
 $dropLabel = New-Object System.Windows.Forms.Label
 $dropLabel.Text = @"
-📂 Drop Here 📂
+>> Drop Files Here <<
 
 Movies: Inception.mp4, The Matrix (1999).mkv
 Shows: Breaking Bad/Season 1/E01.mp4
@@ -270,7 +270,7 @@ function Process-Items {
             $summary += "$episodes episode(s)"
         }
 
-        $dropLabel.Text = "✓ Found: $summary`n`nClick 'Process Files' to upload"
+        $dropLabel.Text = "[OK] Found: $summary`n`nClick 'Process Files' to upload"
         $processButton.Enabled = $true
         Log-Message "Found $summary ready to process" "LightGreen"
     } else {
@@ -310,7 +310,7 @@ function Upload-Files {
 
                 Log-Message "Movie: $($movieInfo.title) ($($movieInfo.year))" "White"
                 Copy-Item -Path $item.path -Destination $destPath -Force
-                Log-Message "  ✓ Copied to movies/" "Green"
+                Log-Message "  [OK] Copied to movies/" "Green"
 
                 $successCount++
             }
@@ -329,13 +329,13 @@ function Upload-Files {
 
                 Log-Message "$($item.showName) - S$($item.season)E$($item.episode)" "White"
                 Copy-Item -Path $item.path -Destination $destPath -Force
-                Log-Message "  ✓ Copied to shows/$($item.showName)/Season $($item.season)/" "Green"
+                Log-Message "  [OK] Copied to shows/$($item.showName)/Season $($item.season)/" "Green"
 
                 $successCount++
             }
         }
         catch {
-            Log-Message "  ✗ Error: $_" "Red"
+            Log-Message "  [X] Error: $_" "Red"
             $failCount++
         }
     }
@@ -346,18 +346,18 @@ function Upload-Files {
     if ($successCount -gt 0) {
         Log-Message "`nFiles are organized in server/media/" "LightGreen"
         Log-Message "Use the web interface (http://localhost:5173) to add metadata" "Gray"
-        $statusLabel.Text = "✓ Done!"
+        $statusLabel.Text = "[DONE]"
         $statusLabel.ForeColor = [System.Drawing.Color]::LightGreen
     }
 
     if ($failCount -gt 0) {
-        $statusLabel.Text = "⚠ Done with errors"
+        $statusLabel.Text = "[WARNING] Done with errors"
         $statusLabel.ForeColor = [System.Drawing.Color]::Orange
     }
 
     $script:itemsToProcess = @()
     $dropLabel.Text = @"
-📂 Drop Here 📂
+>> Drop Files Here <<
 
 Movies: Inception.mp4, The Matrix (1999).mkv
 Shows: Breaking Bad/Season 1/E01.mp4
