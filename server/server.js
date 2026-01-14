@@ -7,6 +7,9 @@ const fs = require('fs');
 const { db, initDatabase, dbHelpers } = require('./database');
 const { authenticateToken, optionalAuth, requireRole, login, register } = require('./auth');
 const crypto = require('crypto');
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
 
 if (process.env.JWT_SECRET === 'your-secret-key-change-in-production' || !process.env.JWT_SECRET) {
   console.error('\n❌ SECURITY WARNING: JWT_SECRET not set or using default!');
@@ -185,34 +188,47 @@ app.post('/api/media/upload', authenticateToken, requireRole('uploader', 'admin'
 
 // Get all media
 app.get('/api/media', optionalAuth, (req, res) => {
-  const { type, genre, search, limit = 50, sortBy = 'created_at', sortOrder = 'DESC', year, minRating } = req.query;
+  const { type, genre, search, limit = 50, offset = 0, sortBy = 'created_at', sortOrder = 'DESC', year, minRating } = req.query;
   let query = 'SELECT * FROM media WHERE 1=1';
+  let countQuery = 'SELECT COUNT(*) as total FROM media WHERE 1=1';
   const params = [];
+  const countParams = [];
 
   if (type) {
     query += ' AND type = ?';
+    countQuery += ' AND type = ?';
     params.push(type);
+    countParams.push(type);
   }
 
   if (genre) {
     query += ' AND genre = ?';
+    countQuery += ' AND genre = ?';
     params.push(genre);
+    countParams.push(genre);
   }
 
   if (year) {
     query += ' AND year = ?';
+    countQuery += ' AND year = ?';
     params.push(parseInt(year));
+    countParams.push(parseInt(year));
   }
 
   if (minRating) {
     query += ' AND rating >= ?';
+    countQuery += ' AND rating >= ?';
     params.push(parseFloat(minRating));
+    countParams.push(parseFloat(minRating));
   }
 
   if (search) {
-    query += ' AND (title LIKE ? OR description LIKE ? OR cast LIKE ? OR director LIKE ? OR tags LIKE ?)';
+    const searchClause = ' AND (title LIKE ? OR description LIKE ? OR cast LIKE ? OR director LIKE ? OR tags LIKE ?)';
+    query += searchClause;
+    countQuery += searchClause;
     const searchTerm = `%${search}%`;
     params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+    countParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
   }
 
   const validSortFields = ['title', 'year', 'rating', 'duration', 'created_at', 'view_count'];
@@ -220,15 +236,27 @@ app.get('/api/media', optionalAuth, (req, res) => {
   const safeSortBy = validSortFields.includes(sortBy) ? sortBy : 'created_at';
   const safeSortOrder = validSortOrders.includes(sortOrder.toUpperCase()) ? sortOrder.toUpperCase() : 'DESC';
 
-  query += ` ORDER BY ${safeSortBy} ${safeSortOrder} LIMIT ?`;
-  params.push(parseInt(limit));
+  query += ` ORDER BY ${safeSortBy} ${safeSortOrder} LIMIT ? OFFSET ?`;
+  params.push(parseInt(limit), parseInt(offset));
 
-  db.all(query, params, (err, rows) => {
+  db.get(countQuery, countParams, (err, countRow) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      return res.status(500).json({ error: err.message });
     }
-    res.json(rows);
+
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({
+        items: rows,
+        total: countRow.total,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        hasMore: (parseInt(offset) + rows.length) < countRow.total
+      });
+    });
   });
 });
 
@@ -882,6 +910,142 @@ app.delete('/api/admin/users/:id', authenticateToken, requireRole('admin'), (req
       res.json({ message: 'User deleted', changes: this.changes });
     }
   );
+});
+
+app.post('/api/admin/generate-thumbnail/:id', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const media = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM media WHERE id = ?', [id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!media || !media.video_url) {
+      return res.status(404).json({ error: 'Media or video not found' });
+    }
+
+    const videoPath = path.join(__dirname, media.video_url.replace('/media/', 'media/'));
+    if (!fs.existsSync(videoPath)) {
+      return res.status(404).json({ error: 'Video file not found on disk' });
+    }
+
+    const thumbnailFilename = `thumb-${id}-${Date.now()}.jpg`;
+    const thumbnailPath = path.join(__dirname, 'media', 'uploads', thumbnailFilename);
+
+    try {
+      await execAsync(`ffmpeg -i "${videoPath}" -ss 00:00:10 -vframes 1 -vf scale=300:-1 "${thumbnailPath}"`);
+
+      const thumbnailUrl = `/media/uploads/${thumbnailFilename}`;
+
+      await new Promise((resolve, reject) => {
+        db.run('UPDATE media SET thumbnail = ? WHERE id = ?', [thumbnailUrl, id], (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      logAudit(req.user.id, 'thumbnail.generate', 'media', id, { thumbnail: thumbnailUrl }, req.ip);
+
+      res.json({ message: 'Thumbnail generated', thumbnail: thumbnailUrl });
+    } catch (ffmpegError) {
+      res.status(500).json({ error: 'ffmpeg not available or failed to generate thumbnail', details: ffmpegError.message });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/admin/scan-library', authenticateToken, requireRole('admin'), async (req, res) => {
+  try {
+    const mediaPath = path.join(__dirname, 'media');
+    const moviesPath = path.join(mediaPath, 'movies');
+    const showsPath = path.join(mediaPath, 'shows');
+
+    const results = {
+      movies: [],
+      shows: [],
+      errors: []
+    };
+
+    const videoExtensions = ['.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v'];
+
+    function scanDirectory(dirPath, type) {
+      if (!fs.existsSync(dirPath)) {
+        return;
+      }
+
+      const items = fs.readdirSync(dirPath);
+
+      for (const item of items) {
+        const itemPath = path.join(dirPath, item);
+        const stats = fs.statSync(itemPath);
+
+        if (stats.isDirectory()) {
+          scanDirectory(itemPath, type);
+        } else if (stats.isFile()) {
+          const ext = path.extname(item).toLowerCase();
+          if (videoExtensions.includes(ext)) {
+            const relativePath = path.relative(mediaPath, itemPath);
+            const videoUrl = `/media/${relativePath.replace(/\\/g, '/')}`;
+
+            const basename = path.basename(item, ext);
+            const titleMatch = basename.match(/^(.+?)\s*\((\d{4})\)/);
+            const title = titleMatch ? titleMatch[1] : basename;
+            const year = titleMatch ? parseInt(titleMatch[2]) : null;
+
+            if (type === 'movie') {
+              results.movies.push({ title, year, videoUrl, filepath: itemPath });
+            } else if (type === 'show') {
+              results.shows.push({ title, year, videoUrl, filepath: itemPath });
+            }
+          }
+        }
+      }
+    }
+
+    scanDirectory(moviesPath, 'movie');
+    scanDirectory(showsPath, 'show');
+
+    for (const movie of results.movies) {
+      const existing = await new Promise((resolve, reject) => {
+        db.get('SELECT id FROM media WHERE video_url = ?', [movie.videoUrl], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+
+      if (!existing) {
+        await new Promise((resolve, reject) => {
+          db.run(
+            'INSERT INTO media (title, type, year, video_url, genre) VALUES (?, ?, ?, ?, ?)',
+            [movie.title, 'movie', movie.year, movie.videoUrl, 'Other'],
+            (err) => {
+              if (err) {
+                results.errors.push({ file: movie.filepath, error: err.message });
+                reject(err);
+              } else {
+                resolve();
+              }
+            }
+          );
+        });
+      }
+    }
+
+    logAudit(req.user.id, 'library.scan', 'media', null, { found: results.movies.length + results.shows.length }, req.ip);
+
+    res.json({
+      message: 'Library scan complete',
+      moviesFound: results.movies.length,
+      showsFound: results.shows.length,
+      errors: results.errors
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get('/api/admin/storage', authenticateToken, requireRole('admin'), async (req, res) => {
