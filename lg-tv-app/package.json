@@ -1,13 +1,13 @@
 {
-  "name": "lg-tv-app",
+  "name": "homeflix-tv",
   "version": "1.0.0",
-  "description": "LG webOS TV app for MediaFlix",
+  "description": "LG webOS TV app for my living room",
   "main": "index.html",
   "scripts": {
     "package": "ares-package .",
-    "install-device": "ares-install com.mediaserver.app_1.0.0_all.ipk",
-    "launch": "ares-launch com.mediaserver.app"
+    "install-device": "ares-install com.homeflix.app_1.0.0_all.ipk",
+    "launch": "ares-launch com.homeflix.app"
   },
-  "keywords": ["webos", "lg", "tv", "media"],
-  "author": "MediaFlix"
+  "keywords": ["webos", "lg", "tv", "media", "personal"],
+  "author": "zeloz"
 }

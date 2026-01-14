@@ -1,10 +1,10 @@
-# 🎬 MediaFlix
+# 🎬 HomeFlix
 
 my personal netflix clone for hosting my own movie/tv show library. supports desktop, mobile, and even my LG TV in the living room.
 
 made by **zeloz**
 
-![MediaFlix](https://img.shields.io/badge/Version-2.0.0-red.svg)
+![HomeFlix](https://img.shields.io/badge/Version-2.0.0-red.svg)
 ![Platform](https://img.shields.io/badge/Platform-Web%20%7C%20LG%20TV-blue.svg)
 ![Docker](https://img.shields.io/badge/Docker-Ready-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
@@ -426,7 +426,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step instructions.
 
 ## 🔄 Updates & Maintenance
 
-### Update MediaFlix
+### Update HomeFlix
 
 ```bash
 # Automated update (with backup)
@@ -575,4 +575,4 @@ Then visit http://localhost:3000 and enjoy! 🍿
 
 ---
 
-**Made with ❤️ by the MediaFlix team**
+**Made with ❤️ by the HomeFlix team**

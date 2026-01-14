@@ -1,4 +1,4 @@
-// MediaFlix Server by zeloz
+// HomeFlix Server by zeloz
 // my own netflix clone, pretty proud of this one ngl
 // TODO: maybe add subtitle support later?
 
@@ -607,7 +607,7 @@ app.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════════════╗
 ║                                                      ║
-║         🎬  MediaFlix Server v2.0 🎬                ║
+║         🎬  HomeFlix Server v2.0 🎬                 ║
 ║                                                      ║
 ║  Server running on port ${PORT}                          ║
 ║  API available at http://localhost:${PORT}/api       ║

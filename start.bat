@@ -3,7 +3,7 @@ REM quick start for windows
 REM - zeloz
 
 echo.
-echo firing up mediaflix...
+echo firing up homeflix...
 echo.
 
 REM install dependencies if needed

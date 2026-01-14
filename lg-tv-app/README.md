@@ -1,4 +1,4 @@
-# mediaflix lg tv app (4k)
+# homeflix lg tv app (4k)
 
 the tv app for my living room LG. spent way too long getting this to work but it's pretty awesome now.
 

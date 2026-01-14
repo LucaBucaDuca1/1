@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# quick start script for mediaflix
+# quick start script for homeflix
 # just run ./start.sh and everything should work
 # - zeloz
 
-echo "🎬 firing up mediaflix..."
+echo "🎬 firing up homeflix..."
 echo ""
 
 # install stuff if needed

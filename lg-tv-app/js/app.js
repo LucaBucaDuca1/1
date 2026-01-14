@@ -9,7 +9,7 @@ class MediaApp {
     }
 
     async init() {
-        console.log('firing up mediaflix on tv...');
+        console.log('firing up homeflix on tv...');
         this.setupMenuNavigation();
         await this.loadHomeScreen();
     }

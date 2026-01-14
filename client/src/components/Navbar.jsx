@@ -44,7 +44,7 @@ const Navbar = () => {
       <div className="navbar-container">
         <div className="navbar-left">
           <Link to="/" className="navbar-logo">
-            MediaFlix
+            HomeFlix
           </Link>
           <div className="navbar-links">
             <Link to="/">Home</Link>

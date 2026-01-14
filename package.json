@@ -1,7 +1,7 @@
 {
-  "name": "media-server-suite",
+  "name": "homeflix",
   "version": "1.0.0",
-  "description": "Netflix-like media server for phone, desktop, and LG TV",
+  "description": "my personal netflix clone for phone, desktop, and LG TV",
   "author": "zeloz",
   "private": true,
   "workspaces": [
