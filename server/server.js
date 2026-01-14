@@ -280,39 +280,67 @@ app.get('/api/genres', (req, res) => {
   });
 });
 
-// Get recommendations based on media
-app.get('/api/recommendations/:id', (req, res) => {
+app.get('/api/recommendations/:id', optionalAuth, (req, res) => {
   const { id } = req.params;
+  const userId = req.user?.id;
 
-  // Get the source media first
-  db.get('SELECT genre, tags FROM media WHERE id = ?', [id], (err, sourceMedia) => {
+  db.get('SELECT * FROM media WHERE id = ?', [id], (err, sourceMedia) => {
     if (err || !sourceMedia) {
       res.status(404).json({ error: 'Media not found' });
       return;
     }
 
-    // Find similar media by genre and tags
-    const tags = sourceMedia.tags ? sourceMedia.tags.split(',') : [];
-    const tagQuery = tags.map(() => 'tags LIKE ?').join(' OR ');
+    const tags = sourceMedia.tags ? sourceMedia.tags.split(',').map(t => t.trim()) : [];
+    const cast = sourceMedia.cast ? sourceMedia.cast.split(',').map(c => c.trim()) : [];
 
     let query = `
-      SELECT *,
-        CASE
-          WHEN genre = ? THEN 2
-          ELSE 0
-        END as score
-      FROM media
-      WHERE id != ?
+      SELECT m.*,
+        (CASE WHEN m.genre = ? THEN 3 ELSE 0 END) +
+        (CASE WHEN m.director = ? AND m.director IS NOT NULL THEN 2 ELSE 0 END) +
+        (CASE WHEN m.type = ? THEN 1 ELSE 0 END) +
+        (CASE WHEN m.rating >= ? THEN 1 ELSE 0 END)
+        as score
+      FROM media m
+      WHERE m.id != ?
     `;
 
-    const params = [sourceMedia.genre, id];
+    const params = [sourceMedia.genre, sourceMedia.director, sourceMedia.type, sourceMedia.rating - 1, id];
 
     if (tags.length > 0) {
-      query += ` AND (${tagQuery})`;
-      tags.forEach(tag => params.push(`%${tag.trim()}%`));
+      const tagConditions = tags.map(() => 'm.tags LIKE ?').join(' OR ');
+      query += ` AND (${tagConditions})`;
+      tags.forEach(tag => params.push(`%${tag}%`));
     }
 
-    query += ' ORDER BY score DESC, rating DESC LIMIT 12';
+    if (cast.length > 0 && cast.length <= 5) {
+      const castConditions = cast.slice(0, 3).map(() => 'm.cast LIKE ?').join(' OR ');
+      query += ` OR (${castConditions})`;
+      cast.slice(0, 3).forEach(actor => params.push(`%${actor}%`));
+    }
+
+    if (userId) {
+      query = `
+        WITH scored_media AS (
+          ${query}
+        ),
+        user_prefs AS (
+          SELECT m.genre, COUNT(*) as genre_count
+          FROM watch_history wh
+          JOIN media m ON wh.media_id = m.id
+          WHERE wh.user_id = ? AND wh.progress > 300
+          GROUP BY m.genre
+        )
+        SELECT sm.*,
+          sm.score + COALESCE(up.genre_count * 0.5, 0) as final_score
+        FROM scored_media sm
+        LEFT JOIN user_prefs up ON sm.genre = up.genre
+        ORDER BY final_score DESC, sm.rating DESC, sm.year DESC
+        LIMIT 12
+      `;
+      params.push(userId);
+    } else {
+      query += ' ORDER BY score DESC, m.rating DESC, m.year DESC LIMIT 12';
+    }
 
     db.all(query, params, (err, rows) => {
       if (err) {
