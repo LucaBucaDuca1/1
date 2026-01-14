@@ -1,174 +1,224 @@
 # 🚀 Quick Start Guide
 
-Get MediaFlix running in under 5 minutes!
+Get HomeFlix running in 3 minutes!
 
 ## Prerequisites
 
-✅ **Docker Desktop** installed ([Download here](https://www.docker.com/products/docker-desktop))
-- Includes Docker and Docker Compose
-- Available for Windows, macOS, and Linux
+You need Node.js installed. Check by running:
 
-✅ **Git** (optional, for cloning)
+```bash
+node --version
+npm --version
+```
 
-✅ **2GB RAM** minimum, 4GB recommended
+**Don't have Node.js?**
+- Download from: https://nodejs.org/ (get LTS version)
+- Or use a package manager:
+  - **Mac:** `brew install node`
+  - **Ubuntu/Debian:** `sudo apt install nodejs npm`
 
 ---
 
-## Installation
+## Option 1: Automatic Setup (Easiest)
 
-### Option 1: One-Command Install (Recommended)
+### Windows
 
-**Linux/macOS:**
+Just double-click: **`start.bat`**
+
+OR open Command Prompt and run:
+```cmd
+start.bat
+```
+
+### Mac/Linux
+
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+That's it! The script will:
+1. Check for Node.js
+2. Install all dependencies automatically
+3. Start both backend and frontend
+4. Open at http://localhost:5173
+
+---
+
+## Option 2: Manual Setup (Step by Step)
+
+If the automatic setup doesn't work:
+
+### 1. Install Dependencies
+
+```bash
+npm run setup
+```
+
+This installs packages for root, server, and client.
+
+### 2. Start the Application
+
+```bash
+npm run dev
+```
+
+This starts both backend (port 3001) and frontend (port 5173) together.
+
+### 3. Open Your Browser
+
+Go to: **http://localhost:5173**
+
+---
+
+## First Time Login
+
+**Demo Account:**
+- Username: `demo`
+- Password: `demo123`
+
+This account has **admin** privileges.
+
+---
+
+## What If Something Goes Wrong?
+
+### Quick Health Check
+
+Run the doctor:
+```bash
+npm run doctor
+```
+
+This checks:
+- ✓ Node.js version (need 16+)
+- ✓ npm installed
+- ✓ Dependencies installed
+- ✓ Ports available
+- ✓ ffmpeg (optional)
+
+### Port Already in Use?
+
+**Kill processes using the ports:**
+
+Windows:
+```cmd
+netstat -ano | findstr :3001
+taskkill /PID <PID> /F
+
+netstat -ano | findstr :5173
+taskkill /PID <PID> /F
+```
+
+Mac/Linux:
+```bash
+lsof -ti:3001 | xargs kill -9
+lsof -ti:5173 | xargs kill -9
+```
+
+### Still Having Issues?
+
+See **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** for detailed help.
+
+---
+
+## Alternative: Docker Setup
+
+If you prefer Docker:
+
+### Prerequisites
+- Docker Desktop installed and running
+- Docker Compose available
+
+### Windows
+```powershell
+.\install.ps1
+```
+
+### Mac/Linux
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-**Windows PowerShell (Run as Administrator):**
-```powershell
-.\install.ps1
-```
-
-### Option 2: Manual Install
-
-```bash
-# 1. Copy environment file
-cp .env.example .env
-
-# 2. (Optional) Edit .env for custom settings
-nano .env
-
-# 3. Start services
-docker-compose up -d
-
-# 4. View logs
-docker-compose logs -f
-```
+Docker setup uses different ports:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3001
 
 ---
 
-## Access Your Server
+## Stopping the Server
 
-### URLs
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:3001/api
-
-### Default Login
-- **Username:** `demo`
-- **Password:** `demo123`
+Press **Ctrl+C** in the terminal where HomeFlix is running.
 
 ---
 
-## Add Your Media
+## Adding Your Media
 
-1. **Place video files** in `./server/media/` directory
-2. **Supported formats:** MP4, AVI, MKV, MOV, etc.
-3. **Add via web UI** or API (coming soon)
+### Method 1: Web Upload
+1. Login
+2. Click "Upload" in nav bar
+3. Fill in details and select files
 
----
+### Method 2: Windows Smart Uploader (Best for Bulk)
+1. Run: `HomeFlix-Uploader.ps1`
+2. Drag & drop movies or TV show folders
+3. Auto-organizes everything
 
-## Common Commands
+See [UPLOADER-README.md](./UPLOADER-README.md) for details.
 
-```bash
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-
-# Restart services
-docker-compose restart
-
-# Update to latest version
-./scripts/update.sh
-
-# Create backup
-./scripts/backup.sh
-
-# Restore from backup
-./scripts/restore.sh backups/database_YYYYMMDD_HHMMSS.sql
-```
-
----
-
-## Troubleshooting
-
-### Services won't start?
-```bash
-# Check what's running
-docker-compose ps
-
-# View detailed logs
-docker-compose logs server
-docker-compose logs client
-
-# Restart everything
-docker-compose down && docker-compose up -d
-```
-
-### Port already in use?
-Edit `.env` file and change ports:
-```env
-SERVER_PORT=8080
-CLIENT_PORT=8000
-```
-
-### Need to reset everything?
-```bash
-# ⚠️ WARNING: This deletes all data!
-docker-compose down -v
-rm -rf server/data/database.sqlite
-docker-compose up -d
-```
+### Method 3: Manual Copy + Scan
+1. Copy files to `server/media/movies/` or `server/media/shows/`
+2. Login as admin
+3. Go to Admin Dashboard
+4. Click "Scan Library for New Files"
 
 ---
 
 ## Next Steps
 
-1. **Create your account** at http://localhost:3000/register
-2. **Upload your media** to `./server/media/`
-3. **Configure preferences** in your profile
-4. **Add to My List** your favorite content
-5. **Enjoy!** 🍿
+- **Upload Media:** Add your movies and TV shows
+- **Invite Users:** Create accounts with different roles
+- **Configure:** Edit `server/.env` for JWT secret (production)
+- **Explore:** Check out the admin dashboard
+- **Customize:** Change branding, add features
 
 ---
 
-## Production Deployment
+## Useful Commands
 
-For production deployment on a VPS or cloud:
-- See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete guide
-- Covers AWS, DigitalOcean, Google Cloud, and more
-- Includes SSL setup and security best practices
+```bash
+# Install everything
+npm run setup
 
----
+# Start dev servers
+npm run dev
 
-## Need Help?
+# Run health check
+npm run doctor
 
-- 📖 Full documentation: [README.md](./README.md)
-- 🚀 Deployment guide: [DEPLOYMENT.md](./DEPLOYMENT.md)
-- 🐛 Report issues: GitHub Issues
-- 💬 Ask questions: GitHub Discussions
+# Start only server
+npm run dev:server
 
----
+# Start only client
+npm run dev:client
 
-## Features at a Glance
+# Build for production
+npm run build
 
-✨ **User Authentication** - Secure login with JWT tokens
-
-📺 **Watch History** - Resume where you left off
-
-❤️ **My List** - Save your favorites
-
-🎯 **Recommendations** - Smart content suggestions
-
-📱 **Responsive Design** - Works on phone, tablet, desktop, and TV
-
-🎨 **Beautiful UI** - Modern Netflix-style interface
-
-🔐 **Secure** - Password hashing, token authentication
-
-🐳 **Easy Deploy** - One command Docker setup
+# Start production server
+npm start
+```
 
 ---
 
-**Enjoy MediaFlix!** 🎬🍿
+## Getting Help
+
+1. Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+2. Run `npm run doctor` and check output
+3. Review error messages in terminal
+4. Check that ports 3001 and 5173 aren't in use
+
+---
+
+**Made by zeloz** 🎬
