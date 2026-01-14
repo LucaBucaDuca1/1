@@ -31,12 +31,13 @@ const Home = () => {
         setFeatured(featuredRes.data[0]);
       }
 
-      setAllMedia(mediaRes.data);
+      const mediaItems = mediaRes.data.items || mediaRes.data;
+      setAllMedia(mediaItems);
       setRecentlyAdded(recentRes.data);
       setTrending(trendingRes.data);
 
       const genres = {};
-      mediaRes.data.forEach(item => {
+      mediaItems.forEach(item => {
         if (item.genre) {
           if (!genres[item.genre]) {
             genres[item.genre] = [];

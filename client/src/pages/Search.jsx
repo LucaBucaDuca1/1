@@ -20,7 +20,7 @@ const Search = () => {
     try {
       setLoading(true);
       const response = await axios.get(`/api/media?search=${encodeURIComponent(query)}`);
-      setResults(response.data);
+      setResults(response.data.items || response.data);
     } catch (error) {
       console.error('Error searching media:', error);
     } finally {
