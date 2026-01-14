@@ -97,7 +97,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 
 // upload endpoint - handles video + poster + backdrop images
 // this took forever to get working with multer but it's solid now
-app.post('/api/media/upload', authenticateToken, upload.fields([
+app.post('/api/media/upload', authenticateToken, requireRole('uploader', 'admin'), upload.fields([
   { name: 'video', maxCount: 1 },
   { name: 'poster', maxCount: 1 },
   { name: 'backdrop', maxCount: 1 }
@@ -368,8 +368,7 @@ app.get('/api/recommendations/:id', optionalAuth, (req, res) => {
   });
 });
 
-// Add new media
-app.post('/api/media', authenticateToken, (req, res) => {
+app.post('/api/media', authenticateToken, requireRole('uploader', 'admin'), (req, res) => {
   const {
     title, description, type, genre, year, rating, duration,
     thumbnail, backdrop, video_url, cast, director, maturity_rating, tags
@@ -746,6 +745,59 @@ app.get('/api/media/trending', optionalAuth, (req, res) => {
       res.json(rows);
     }
   );
+});
+
+app.put('/api/media/:id', authenticateToken, requireRole('uploader', 'admin'), (req, res) => {
+  const { id } = req.params;
+  const { title, description, genre, year, rating, duration, cast, director, tags, maturity_rating } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  db.run(
+    `UPDATE media SET title = ?, description = ?, genre = ?, year = ?, rating = ?, duration = ?, cast = ?, director = ?, tags = ?, maturity_rating = ? WHERE id = ?`,
+    [title, description, genre, year, rating, duration, cast, director, tags, maturity_rating, id],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'Media not found' });
+      }
+      res.json({ message: 'Media updated', changes: this.changes });
+    }
+  );
+});
+
+app.delete('/api/media/:id', authenticateToken, requireRole('uploader', 'admin'), (req, res) => {
+  const { id } = req.params;
+
+  db.get('SELECT video_url, thumbnail, backdrop FROM media WHERE id = ?', [id], (err, media) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!media) {
+      return res.status(404).json({ error: 'Media not found' });
+    }
+
+    db.run('DELETE FROM media WHERE id = ?', [id], function(err) {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      [media.video_url, media.thumbnail, media.backdrop].forEach(fileUrl => {
+        if (fileUrl && fileUrl.startsWith('/media/uploads/')) {
+          const filePath = path.join(__dirname, fileUrl.replace('/media/', 'media/'));
+          fs.unlink(filePath, (err) => {
+            if (err) console.error('Error deleting file:', err);
+          });
+        }
+      });
+
+      res.json({ message: 'Media deleted' });
+    });
+  });
 });
 
 app.get('/api/media/random', optionalAuth, (req, res) => {
